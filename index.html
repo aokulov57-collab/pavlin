@@ -77,11 +77,16 @@
   .review-item.rejected .word-label{text-decoration:line-through; color:var(--text-dim);}
   .discuss-timer{font-size:52px; font-weight:800; text-align:center; margin:26px 0; color:var(--accent-2); font-variant-numeric:tabular-nums;}
   .stats-table{background:var(--surface); border-radius:14px; padding:12px 16px; margin-bottom:14px;}
-  .stats-row{display:flex; justify-content:space-between; padding:6px 0; font-size:14px;}
+  .stats-row{display:flex; justify-content:space-between; padding:6px 0; font-size:14px;}  .team-name-input{width:100%; background:var(--surface); border:none; border-radius:10px; padding:12px 14px; color:var(--text); font-size:14px; margin-bottom:8px;}
+  .team-name-input::placeholder{color:var(--text-dim);}
+  .exit-fab{position:fixed; top:14px; right:calc(50% - 200px + 14px); z-index:50; width:34px; height:34px; border-radius:50%; border:none; background:rgba(0,0,0,.35); color:var(--text); font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .exit-fab.hidden{display:none;}
+  @media (max-width:440px){ .exit-fab{ right:14px; } }
 </style>
 </head>
 <body>
 <div id="app">
+<button class="exit-fab hidden" id="exit-btn" onclick="confirmExit()">✕</button>
 
 <!-- ЗАГРУЗКА -->
 <div class="screen" id="screen-loading">
@@ -117,6 +122,7 @@
   <div class="ticket" onclick="openWordSetup('crocodile')"><div class="emoji">🎭</div><div class="info"><div class="name">Крокодил</div><div class="meta">Показывай жестами, без слов</div></div></div>
   <div class="ticket" onclick="openWordSetup('alias')"><div class="emoji">🗣️</div><div class="info"><div class="name">Элиас</div><div class="meta">Объясняй словами, команды</div></div></div>
   <div class="ticket" onclick="openTabooSetup()"><div class="emoji">🚫</div><div class="info"><div class="name">Табу</div><div class="meta">Без запрещённых слов</div></div></div>
+  <div class="ticket" onclick="openHatSetup()"><div class="emoji">🎩</div><div class="info"><div class="name">Шляпа</div><div class="meta">Пары, 3 раунда, общий пул слов</div></div></div>
 
   <div class="group-label">Роли и детектив</div>
   <div class="ticket" onclick="openSpySetup()"><div class="emoji">🕵️</div><div class="info"><div class="name">Шпион</div><div class="meta">3+ игрока · телефон по кругу</div></div></div>
@@ -135,8 +141,11 @@
 <div class="screen hidden" id="screen-setup-word">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1 id="word-setup-title">Крокодил</h1>
+  <div class="sub" id="word-rules-text">Объясняющий показывает слово жестами — без слов и звуков. Остальные выкрикивают ответ вслух.</div>
   <div class="sub" style="margin-bottom:6px;">Количество команд</div>
   <div class="stepper"><button onclick="changeTeams(-1)">–</button><div class="count" id="teams-count">2</div><button onclick="changeTeams(1)">+</button></div>
+  <div class="sub" style="margin-bottom:6px;">Названия команд</div>
+  <div id="word-team-names" style="margin-bottom:16px;"></div>
   <div class="sub" style="margin-bottom:6px;">Категория слов</div>
   <div class="category active" data-cat="normal" onclick="selectWordCategory(this)">Обычные</div>
   <div class="category" data-cat="movies" onclick="selectWordCategory(this)">Фильмы и сериалы</div>
@@ -147,6 +156,7 @@
     <div class="category active" data-dur="60" onclick="selectWordDuration(this)">60с</div>
     <div class="category" data-dur="90" onclick="selectWordDuration(this)">90с</div>
   </div>
+  <div class="category active" id="word-skip-toggle" onclick="toggleAllowSkip(this,'word')">Разрешить пропускать слова: да</div>
   <div style="flex:1"></div>
   <button class="btn btn-primary" onclick="startWordFlow()">Начать игру</button>
 </div>
@@ -171,10 +181,11 @@
 
 <div class="screen hidden" id="screen-game-word">
   <div class="score-row"><span id="word-team-label">Команда 1</span><span id="word-guessed-count">Угадано: 0</span></div>
+  <div class="sub" id="word-mini-scoreboard" style="margin-bottom:8px;"></div>
   <div class="timer" id="word-timer">01:00</div>
   <div class="word-wrap"><div class="word" id="word-current">СЛОН</div></div>
   <div class="actions">
-    <button class="btn-skip" onclick="wordAction('skip')">Пропустить</button>
+    <button class="btn-skip" id="word-skip-btn" onclick="wordAction('skip')">Пропустить</button>
     <button class="btn-correct" onclick="wordAction('correct')">Угадано ✓</button>
   </div>
 </div>
@@ -191,9 +202,13 @@
 <div class="screen hidden" id="screen-setup-taboo">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Табу</h1>
+  <div class="sub">Нужно объяснить главное слово, не называя ни одного слова из списка под ним. Если соперники услышали запрещённое слово — жмут «Нарушение».</div>
   <div class="sub" style="margin-bottom:6px;">Количество команд</div>
   <div class="stepper"><button onclick="changeTeams(-1)">–</button><div class="count" id="taboo-teams-count">2</div><button onclick="changeTeams(1)">+</button></div>
+  <div class="sub" style="margin-bottom:6px;">Названия команд</div>
+  <div id="taboo-team-names" style="margin-bottom:16px;"></div>
   <div class="category active" id="taboo-penalty-toggle" onclick="toggleTabooPenalty(this)">Штраф за нарушение: −1 очко</div>
+  <div class="category active" id="taboo-skip-toggle" onclick="toggleAllowSkip(this,'taboo')">Разрешить пропускать слова: да</div>
   <div style="flex:1"></div>
   <button class="btn btn-primary" onclick="startTabooFlow()">Начать игру</button>
 </div>
@@ -228,7 +243,7 @@
     <button class="btn-violation" onclick="tabooAction('violation')">Нарушение ⚠️</button>
   </div>
   <div class="actions">
-    <button class="btn-skip" onclick="tabooAction('skip')">Пропустить</button>
+    <button class="btn-skip" id="taboo-skip-btn" onclick="tabooAction('skip')">Пропустить</button>
     <button class="btn-correct" onclick="tabooAction('correct')">Угадано ✓</button>
   </div>
 </div>
@@ -241,10 +256,72 @@
   <button class="btn btn-primary" onclick="finishTabooRound()">Передать следующему</button>
 </div>
 
+<!-- ============ ШЛЯПА ============ -->
+<div class="screen hidden" id="screen-setup-hat">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Шляпа</h1>
+  <div class="sub">Классическая Шляпа: одни и те же слова разгадываются трижды. Раунд 1 — объясняй любыми словами (кроме однокоренных), раунд 2 — только ОДНИМ словом, раунд 3 — только жестами. Играют парами, слова уходят из общей «шляпы», когда их угадали.</div>
+  <div class="sub" style="margin-bottom:6px;">Количество пар (команд)</div>
+  <div class="stepper"><button onclick="changeTeams(-1)">–</button><div class="count" id="hat-teams-count">2</div><button onclick="changeTeams(1)">+</button></div>
+  <div class="sub" style="margin-bottom:6px;">Названия пар</div>
+  <div id="hat-team-names" style="margin-bottom:16px;"></div>
+  <div class="sub" style="margin-bottom:6px;">Категория слов (20 слов на пару)</div>
+  <div class="category active" data-cat="normal" onclick="selectHatCategory(this)">Обычные</div>
+  <div class="category" data-cat="movies" onclick="selectHatCategory(this)">Фильмы и сериалы</div>
+  <div class="category" data-cat="adult" onclick="selectHatCategory(this)">Для взрослых 18+</div>
+  <div class="sub" style="margin-bottom:6px;">Время на ход</div>
+  <div class="toggle-row" id="hat-duration-row">
+    <div class="category" data-dur="30" onclick="selectHatDuration(this)">30с</div>
+    <div class="category active" data-dur="60" onclick="selectHatDuration(this)">60с</div>
+    <div class="category" data-dur="90" onclick="selectHatDuration(this)">90с</div>
+  </div>
+  <div class="category active" id="hat-skip-toggle" onclick="toggleHatSkip(this)">Разрешить пропускать слова: да</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startHatSession()">Раздать слова и начать</button>
+</div>
+
+<div class="screen hidden" id="screen-pass-hat">
+  <div class="reveal-box">
+    <div class="sub" id="hat-pass-round">Раунд 1: объясняй словами</div>
+    <div class="sub">Передайте телефон</div>
+    <div style="font-size:26px; font-weight:800;" id="hat-pass-name">Пара 1</div>
+    <button class="btn btn-primary" onclick="goTo('reveal-hat')">Готово, я увидел(а) слово</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-reveal-hat">
+  <div class="reveal-box">
+    <div class="reveal-card blurred" id="hat-reveal-card" onclick="unblurHatCard()">
+      <div class="content" id="hat-reveal-text">СЛОВО</div>
+      <div class="reveal-hint" id="hat-reveal-hint">Нажми, чтобы увидеть слово</div>
+    </div>
+    <button class="btn btn-primary" onclick="beginHatTimer()">Начать</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-game-hat">
+  <div class="score-row"><span id="hat-team-label">Пара 1</span><span id="hat-round-label">Раунд 1</span></div>
+  <div class="sub" id="hat-mode-hint" style="margin-bottom:8px;">Объясняй любыми словами, кроме однокоренных</div>
+  <div class="timer" id="hat-timer">01:00</div>
+  <div class="word-wrap"><div class="word" id="hat-current-word">СЛОН</div></div>
+  <div class="actions">
+    <button class="btn-skip" id="hat-skip-btn" onclick="hatAction('skip')">Пропустить</button>
+    <button class="btn-correct" onclick="hatAction('correct')">Угадано ✓</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-round-summary-hat">
+  <h1 id="hat-round-summary-title">Раунд 1 из 3 завершён!</h1>
+  <div id="hat-round-summary-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" id="hat-round-next-btn" onclick="startHatRound(2)">Начать раунд 2</button>
+</div>
+
 <!-- ============ ШПИОН ============ -->
 <div class="screen hidden" id="screen-setup-spy">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Шпион</h1>
+  <div class="sub">Все игроки, кроме одного случайного (шпиона), получают одну и ту же локацию. Обсуждайте вслух, задавайте вопросы про локацию — и вычисляйте, кто не в теме.</div>
   <div class="sub" id="spy-players-hint">Играют: —</div>
   <div class="category active" data-mode="none" onclick="selectSpyMode(this)">Шпион не знает ничего</div>
   <div class="category" data-mode="category" onclick="selectSpyMode(this)">Шпион знает категорию</div>
@@ -306,6 +383,7 @@
 <div class="screen hidden" id="screen-setup-whoami">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Кто я</h1>
+  <div class="sub">Каждому присваивается персонаж, которого видят все, кроме него самого. Задавайте вслух вопросы да/нет, чтобы угадать, кто вы.</div>
   <div class="sub" id="whoami-players-hint">Играют: —</div>
   <div class="sub">Роль каждого будет показана всем, КРОМЕ него самого — предупреждение появится крупно на экране</div>
   <div style="flex:1"></div>
@@ -341,6 +419,7 @@
 <div class="screen hidden" id="screen-setup-truthdare">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Правда или действие</h1>
+  <div class="sub">Игрок выбирает «Правду» (честно ответить на вопрос) или «Действие» (выполнить задание).</div>
   <div class="sub" id="td-players-hint">Играют: —</div>
   <div class="sub" style="margin-bottom:6px;">Уровень</div>
   <div class="toggle-row" id="td-level-row">
@@ -385,6 +464,7 @@
 <div class="screen hidden" id="screen-setup-never">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Я никогда не...</h1>
+  <div class="sub">По очереди читаете фразу «Я никогда не...». Кто делал то, о чём фраза — сам решает, как себя обозначить (загнуть палец, сделать глоток — на ваше усмотрение).</div>
   <div class="sub" style="margin-bottom:6px;">Режим</div>
   <div class="toggle-row" id="never-mode-row">
     <div class="category active" data-mode="pass" onclick="selectNeverMode(this)">По кругу</div>
@@ -412,8 +492,8 @@
 <div class="screen hidden" id="screen-setup-mostlikely">
   <div class="back" onclick="goTo('catalog')">← Назад</div>
   <h1>Кто из нас скорее</h1>
+  <div class="sub">Зачитывается вопрос «Кто из нас скорее...», все вслух голосуют за того, кто по их мнению больше подходит. Тапаете за каждого, кто получил голос — приложение фиксирует большинство.</div>
   <div class="sub" id="ml-players-hint">Играют: —</div>
-  <div class="sub">По очереди читайте вопрос и тапайте на того, за кого голосуете — можно голосовать вслух и тапать за большинство</div>
   <div style="flex:1"></div>
   <button class="btn btn-primary" onclick="startMostLikelyGame()">Начать игру</button>
 </div>
@@ -441,6 +521,14 @@
 </div>
 
 <!-- ============ ЧТО БЫ ТЫ ВЫБРАЛ ============ -->
+<div class="screen hidden" id="screen-setup-wouldyou">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Что бы ты выбрал</h1>
+  <div class="sub">По очереди читаете вопрос-дилемму вслух и обсуждаете, что бы каждый выбрал и почему.</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startWouldYouGame()">Начать игру</button>
+</div>
+
 <div class="screen hidden" id="screen-game-wouldyou">
   <div class="card-box"><div class="card-text" id="wy-text">Вопрос</div></div>
   <button class="btn btn-primary" onclick="nextWouldYou()">Следующий вопрос →</button>
@@ -474,9 +562,37 @@ function vibrate(){
 }
 
 // --- навигация ---
+const EXIT_VISIBLE_SCREENS = new Set([
+  'pass-word','reveal-word','game-word','review-word',
+  'pass-taboo','reveal-taboo','game-taboo','review-taboo',
+  'pass-hat','reveal-hat','game-hat','round-summary-hat',
+  'pass-spy','reveal-spy','discuss-spy','vote-spy','result-spy',
+  'assign-whoami','game-whoami','confirm-whoami',
+  'turn-truthdare','card-truthdare','next-truthdare',
+  'pass-never','phrase-never',
+  'phrase-mostlikely','vote-mostlikely','result-mostlikely',
+  'game-wouldyou'
+]);
 function goTo(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('screen-' + id).classList.remove('hidden');
+  const exitBtn = document.getElementById('exit-btn');
+  if(exitBtn) exitBtn.classList.toggle('hidden', !EXIT_VISIBLE_SCREENS.has(id));
+}
+function cancelAllTimers(){
+  if(typeof wordTimer !== 'undefined' && wordTimer) wordTimer.cancel();
+  if(typeof tabooTimer !== 'undefined' && tabooTimer) tabooTimer.cancel();
+  if(typeof hatTimer !== 'undefined' && hatTimer) hatTimer.cancel();
+  if(typeof spyDiscussTimer !== 'undefined' && spyDiscussTimer) spyDiscussTimer.cancel();
+}
+function doExit(){
+  cancelAllTimers();
+  goTo('catalog');
+}
+function confirmExit(){
+  if(confirm('Выйти из игры? Текущий прогресс раунда потеряется.')){
+    doExit();
+  }
 }
 
 // --- Deck<T>: shuffle / draw / reset / remainingCount ---
@@ -588,18 +704,49 @@ if(window.Telegram && window.Telegram.WebApp){
 }
 loadContent();
 
+/* =================== ОБЩЕЕ: ИМЕНА КОМАНД =================== */
+let teams = 2, teamNames = ['Команда 1', 'Команда 2'];
+let currentTeamNameContainer = 'word-team-names';
+
+function renderTeamNameInputs(containerId){
+  currentTeamNameContainer = containerId;
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = teamNames.map((n,i) =>
+    '<input class="team-name-input" oninput="updateTeamName(' + i + ', this.value)" value="' + n.replace(/"/g,'&quot;') + '" placeholder="Команда ' + (i+1) + '">'
+  ).join('');
+}
+function updateTeamName(i, val){
+  teamNames[i] = val && val.trim() ? val : ('Команда ' + (i+1));
+}
+function teamLabel(i){ return teamNames[i] || ('Команда ' + (i+1)); }
+function changeTeams(delta){
+  teams = Math.min(6, Math.max(2, teams + delta));
+  ['teams-count','taboo-teams-count'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = teams; });
+  while(teamNames.length < teams) teamNames.push('Команда ' + (teamNames.length + 1));
+  teamNames = teamNames.slice(0, teams);
+  renderTeamNameInputs(currentTeamNameContainer);
+}
+function toggleAllowSkip(el, which){
+  if(which === 'word'){ allowSkipWord = !allowSkipWord; el.textContent = 'Разрешить пропускать слова: ' + (allowSkipWord ? 'да' : 'нет'); el.classList.toggle('active', allowSkipWord); }
+  else { allowSkipTaboo = !allowSkipTaboo; el.textContent = 'Разрешить пропускать слова: ' + (allowSkipTaboo ? 'да' : 'нет'); el.classList.toggle('active', allowSkipTaboo); }
+}
+function miniScoreboardHtml(scores){
+  return 'Счёт: ' + scores.map((s,i) => teamLabel(i) + ' — ' + s).join(' · ');
+}
+
 /* =================== ОБЪЯСНИ СЛОВО (Крокодил / Элиас) =================== */
-let teams = 2, wordCategory = 'normal', wordDuration = 60, wordGameTitle = 'Крокодил';
+let wordCategory = 'normal', wordDuration = 60, wordGameTitle = 'Крокодил', allowSkipWord = true;
 let wordDeck = null, wordCurrentTeam = 0, wordTeamScores = [], wordRoundWords = [], wordTimer = null;
 
 function openWordSetup(kind){
   wordGameTitle = kind === 'alias' ? 'Элиас' : 'Крокодил';
   document.getElementById('word-setup-title').textContent = wordGameTitle;
+  document.getElementById('word-rules-text').textContent = kind === 'alias'
+    ? 'Объясняющий описывает слово любыми словами, кроме однокоренных. Партнёры по команде выкрикивают ответ на время.'
+    : 'Объясняющий показывает слово жестами — без слов и звуков. Остальные выкрикивают ответ вслух.';
+  renderTeamNameInputs('word-team-names');
   goTo('setup-word');
-}
-function changeTeams(delta){
-  teams = Math.min(6, Math.max(2, teams + delta));
-  ['teams-count','taboo-teams-count'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = teams; });
 }
 function selectWordCategory(el){
   el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
@@ -618,7 +765,7 @@ function startWordFlow(){
   goToWordPass();
 }
 function goToWordPass(){
-  document.getElementById('word-pass-name').textContent = 'Команда ' + (wordCurrentTeam + 1);
+  document.getElementById('word-pass-name').textContent = teamLabel(wordCurrentTeam);
   goTo('pass-word');
 }
 function unblurWordCard(){
@@ -630,11 +777,12 @@ function beginWordTimer(){
   document.getElementById('word-reveal-card').classList.add('blurred');
   document.getElementById('word-reveal-hint').style.display = 'flex';
   document.getElementById('word-reveal-text').textContent = w;
-  // подготовка к самому показу — сразу переходим к экрану раскрытия перед стартом раунда
   wordRoundWords = [];
-  document.getElementById('word-team-label').textContent = 'Команда ' + (wordCurrentTeam + 1);
+  document.getElementById('word-team-label').textContent = teamLabel(wordCurrentTeam);
   document.getElementById('word-current').textContent = w;
   document.getElementById('word-guessed-count').textContent = 'Угадано: 0';
+  document.getElementById('word-mini-scoreboard').textContent = miniScoreboardHtml(wordTeamScores);
+  document.getElementById('word-skip-btn').style.display = allowSkipWord ? 'block' : 'none';
   goTo('game-word');
   wordTimer = createTimer(wordDuration, (rem) => {
     document.getElementById('word-timer').textContent = formatTime(rem);
@@ -644,6 +792,7 @@ function beginWordTimer(){
   });
 }
 function wordAction(type){
+  if(type === 'skip' && !allowSkipWord) return;
   const current = document.getElementById('word-current').textContent;
   wordRoundWords.push({ text: current, correct: type === 'correct' });
   if(type === 'correct') vibrate();
@@ -677,14 +826,17 @@ function finishWordRound(){
 }
 function wordScoreboardHtml(){
   return '<div class="stats-table">' + wordTeamScores.map((s,i) =>
-    '<div class="stats-row"><span>Команда ' + (i+1) + '</span><span>' + s + '</span></div>'
+    '<div class="stats-row"><span>' + teamLabel(i) + '</span><span>' + s + '</span></div>'
   ).join('') + '</div>';
 }
 
 /* =================== ТАБУ =================== */
-let tabooDeck = null, tabooCurrentTeam = 0, tabooTeamScores = [], tabooRoundCards = [], tabooTimer = null, tabooPenalty = true;
+let tabooDeck = null, tabooCurrentTeam = 0, tabooTeamScores = [], tabooRoundCards = [], tabooTimer = null, tabooPenalty = true, allowSkipTaboo = true;
 
-function openTabooSetup(){ goTo('setup-taboo'); }
+function openTabooSetup(){
+  renderTeamNameInputs('taboo-team-names');
+  goTo('setup-taboo');
+}
 function toggleTabooPenalty(el){
   tabooPenalty = !tabooPenalty;
   el.textContent = 'Штраф за нарушение: ' + (tabooPenalty ? '−1 очко' : 'выкл');
@@ -697,7 +849,7 @@ function startTabooFlow(){
   goToTabooPass();
 }
 function goToTabooPass(){
-  document.getElementById('taboo-pass-name').textContent = 'Команда ' + (tabooCurrentTeam + 1);
+  document.getElementById('taboo-pass-name').textContent = teamLabel(tabooCurrentTeam);
   goTo('pass-taboo');
 }
 function unblurTabooCard(){
@@ -712,9 +864,10 @@ function beginTabooTimer(){
   document.getElementById('taboo-reveal-word').textContent = tabooCurrentCard.word;
   document.getElementById('taboo-reveal-list').innerHTML = tabooCurrentCard.taboo.map(t => '<div class="taboo-item">' + t + '</div>').join('');
   tabooRoundCards = [];
-  document.getElementById('taboo-team-label').textContent = 'Команда ' + (tabooCurrentTeam + 1);
+  document.getElementById('taboo-team-label').textContent = teamLabel(tabooCurrentTeam);
   renderTabooGameCard();
   document.getElementById('taboo-guessed-count').textContent = 'Угадано: 0';
+  document.getElementById('taboo-skip-btn') && (document.getElementById('taboo-skip-btn').style.display = allowSkipTaboo ? 'block' : 'none');
   goTo('game-taboo');
   tabooTimer = createTimer(60, (rem) => {
     document.getElementById('taboo-timer').textContent = formatTime(rem);
@@ -725,6 +878,7 @@ function renderTabooGameCard(){
   document.getElementById('taboo-current-list').innerHTML = tabooCurrentCard.taboo.map(t => '<div class="taboo-item">' + t + '</div>').join('');
 }
 function tabooAction(type){
+  if(type === 'skip' && !allowSkipTaboo) return;
   tabooRoundCards.push({ word: tabooCurrentCard.word, correct: type === 'correct', violation: type === 'violation' });
   if(type === 'correct') vibrate();
   document.getElementById('taboo-guessed-count').textContent = 'Угадано: ' + tabooRoundCards.filter(c=>c.correct).length;
@@ -758,6 +912,127 @@ function finishTabooRound(){
   tabooTeamScores[tabooCurrentTeam] += correct - (tabooPenalty ? violations : 0);
   tabooCurrentTeam = (tabooCurrentTeam + 1) % teams;
   goToTabooPass();
+}
+
+/* =================== ШЛЯПА =================== */
+// Общий пул слов на всю сессию: 20 слов на пару. Один и тот же пул разгадывается
+// трижды (3 раунда с разными правилами объяснения), очки считаются отдельно по раундам.
+let hatCategory = 'normal', hatDuration = 60, allowSkipHat = true;
+let hatWords = [], hatRoundIndex = 1, hatRemaining = [], hatCurrentTeam = 0, hatScores = [], hatTimer = null, hatCurrentWord = null;
+const HAT_ROUND_LABELS = ['', 'Раунд 1: объясняй словами', 'Раунд 2: объясняй ОДНИМ словом', 'Раунд 3: покажи жестами'];
+const HAT_ROUND_HINTS = ['', 'Объясняй любыми словами, кроме однокоренных', 'Объясняй строго ОДНИМ словом', 'Только жесты — без слов и звуков'];
+
+function openHatSetup(){
+  renderTeamNameInputs('hat-team-names');
+  goTo('setup-hat');
+}
+function selectHatCategory(el){
+  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  hatCategory = el.dataset.cat;
+}
+function selectHatDuration(el){
+  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  hatDuration = parseInt(el.dataset.dur, 10);
+}
+function toggleHatSkip(el){
+  allowSkipHat = !allowSkipHat;
+  el.textContent = 'Разрешить пропускать слова: ' + (allowSkipHat ? 'да' : 'нет');
+  el.classList.toggle('active', allowSkipHat);
+}
+function startHatSession(){
+  const pool = CONTENT.wordCategories[hatCategory];
+  const needed = teams * 20;
+  if(pool.length < needed){
+    alert('В этой категории всего ' + pool.length + ' слов, а для ' + teams + ' пар нужно ' + needed + '. Выбери другую категорию или уменьши число пар.');
+    return;
+  }
+  hatWords = shuffleArray(pool).slice(0, needed);
+  hatScores = [Array(teams).fill(0), Array(teams).fill(0), Array(teams).fill(0)];
+  startHatRound(1);
+}
+function startHatRound(roundNum){
+  hatRoundIndex = roundNum;
+  hatRemaining = shuffleArray(hatWords);
+  hatCurrentTeam = 0;
+  goToHatPass();
+}
+function goToHatPass(){
+  document.getElementById('hat-pass-name').textContent = teamLabel(hatCurrentTeam);
+  document.getElementById('hat-pass-round').textContent = HAT_ROUND_LABELS[hatRoundIndex];
+  goTo('pass-hat');
+}
+function unblurHatCard(){
+  document.getElementById('hat-reveal-card').classList.remove('blurred');
+  document.getElementById('hat-reveal-hint').style.display = 'none';
+}
+function hatDrawNext(){
+  if(hatRemaining.length === 0) return null;
+  return hatRemaining.pop();
+}
+function beginHatTimer(){
+  hatCurrentWord = hatDrawNext();
+  document.getElementById('hat-reveal-card').classList.add('blurred');
+  document.getElementById('hat-reveal-hint').style.display = 'flex';
+  document.getElementById('hat-reveal-text').textContent = hatCurrentWord;
+  document.getElementById('hat-team-label').textContent = teamLabel(hatCurrentTeam);
+  document.getElementById('hat-round-label').textContent = 'Раунд ' + hatRoundIndex + ' из 3';
+  document.getElementById('hat-mode-hint').textContent = HAT_ROUND_HINTS[hatRoundIndex];
+  document.getElementById('hat-current-word').textContent = hatCurrentWord;
+  document.getElementById('hat-skip-btn').style.display = allowSkipHat ? 'block' : 'none';
+  goTo('game-hat');
+  hatTimer = createTimer(hatDuration, (rem) => {
+    document.getElementById('hat-timer').textContent = formatTime(rem);
+  }, () => {
+    vibrate();
+    if(hatCurrentWord !== null) hatRemaining.push(hatCurrentWord);
+    hatCurrentTeam = (hatCurrentTeam + 1) % teams;
+    goToHatPass();
+  });
+}
+function hatAction(type){
+  if(type === 'skip' && !allowSkipHat) return;
+  if(type === 'correct'){
+    hatScores[hatRoundIndex - 1][hatCurrentTeam]++;
+    vibrate();
+  } else {
+    hatRemaining.unshift(hatCurrentWord);
+  }
+  if(hatRemaining.length === 0){
+    if(hatTimer) hatTimer.cancel();
+    goToHatRoundSummary();
+    return;
+  }
+  hatCurrentWord = hatDrawNext();
+  document.getElementById('hat-current-word').textContent = hatCurrentWord;
+}
+function goToHatRoundSummary(){
+  const list = document.getElementById('hat-round-summary-list');
+  list.innerHTML = '<div class="stats-table">' + hatScores[hatRoundIndex - 1].map((s,i) =>
+    '<div class="stats-row"><span>' + teamLabel(i) + '</span><span>' + s + '</span></div>'
+  ).join('') + '</div>';
+  document.getElementById('hat-round-summary-title').textContent = 'Раунд ' + hatRoundIndex + ' из 3 завершён!';
+  const btn = document.getElementById('hat-round-next-btn');
+  if(hatRoundIndex < 3){
+    btn.textContent = 'Начать раунд ' + (hatRoundIndex + 1);
+    btn.onclick = () => startHatRound(hatRoundIndex + 1);
+  } else {
+    btn.textContent = 'Смотреть итоги';
+    btn.onclick = finishHatGame;
+  }
+  goTo('round-summary-hat');
+}
+function finishHatGame(){
+  const totals = Array(teams).fill(0);
+  hatScores.forEach(roundArr => roundArr.forEach((s,i) => totals[i] += s));
+  const max = Math.max(...totals);
+  const winners = totals.map((s,i) => i).filter(i => totals[i] === max);
+  const html = '<div class="stats-table">' + totals.map((s,i) =>
+    '<div class="stats-row"><span>' + teamLabel(i) + '</span><span>' + s + '</span></div>'
+  ).join('') + '</div>';
+  const title = winners.length > 1 ? 'Ничья!' : 'Победила ' + teamLabel(winners[0]) + '!';
+  endGameScreen('Шляпа — итоги', title, startHatSession, html);
 }
 
 /* =================== ШПИОН =================== */
@@ -1070,7 +1345,8 @@ goTo = function(id){
 
 /* =================== ЧТО БЫ ТЫ ВЫБРАЛ =================== */
 let wyDeck = null;
-function openWouldYouSetup(){
+function openWouldYouSetup(){ goTo('setup-wouldyou'); }
+function startWouldYouGame(){
   wyDeck = makeDeck(CONTENT.voteDecks.wouldyou);
   nextWouldYou();
   goTo('game-wouldyou');
