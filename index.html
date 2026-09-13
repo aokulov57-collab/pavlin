@@ -3,417 +3,484 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Игры для компании — прототип</title>
+<title>Игры для компании</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
-    --bg:#211328;
-    --surface:#2e1b3a;
-    --surface-2:#3a2448;
-    --accent:#f2a93b;
-    --accent-2:#ff5d8f;
-    --text:#f5eee4;
-    --text-dim:#c4b3cc;
+    --bg:#211328; --surface:#2e1b3a; --surface-2:#3a2448;
+    --accent:#f2a93b; --accent-2:#ff5d8f;
+    --text:#f5eee4; --text-dim:#c4b3cc; --danger:#ff5d8f;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    display:flex;
-    justify-content:center;
-  }
-  #app{
-    width:100%;
-    max-width:420px;
-    min-height:100vh;
-    position:relative;
-    overflow:hidden;
-    background:var(--bg);
-  }
-  .screen{
-    position:absolute;
-    inset:0;
-    display:flex;
-    flex-direction:column;
-    padding:20px;
-    transition:transform .35s ease, opacity .35s ease;
-    overflow-y:auto;
-  }
-  .hidden{opacity:0; pointer-events:none; transform:translateX(24px);}
-
-  h1{
-    font-family:Georgia, 'Times New Roman', serif;
-    font-weight:700;
-    font-size:32px;
-    letter-spacing:-0.5px;
-    margin:8px 0 4px;
-  }
-  .sub{color:var(--text-dim); font-size:14px; margin-bottom:18px;}
-
-  /* Каталог */
-  .ticket{
-    background:var(--surface);
-    border-radius:18px;
-    padding:16px 16px 16px 22px;
-    margin-bottom:12px;
-    position:relative;
-    display:flex;
-    align-items:center;
-    gap:14px;
-    cursor:pointer;
-    border:1px solid rgba(255,255,255,0.05);
-  }
-  .ticket::before{
-    content:"";
-    position:absolute;
-    left:0; top:0; bottom:0;
-    width:4px;
-    background:repeating-linear-gradient(to bottom, transparent 0 6px, rgba(0,0,0,0.35) 6px 12px);
-    border-radius:4px 0 0 4px;
-  }
-  .ticket .emoji{font-size:28px; width:40px; text-align:center;}
-  .ticket .info{flex:1;}
-  .ticket .name{font-size:16px; font-weight:600;}
-  .ticket .meta{font-size:12px; color:var(--text-dim); margin-top:2px;}
-
-  .group-label{
-    color:var(--text-dim); font-size:12px; text-transform:none;
-    margin:18px 0 8px; padding-left:2px;
-  }
-
-  /* Кнопки */
-  .btn{
-    border:none;
-    border-radius:14px;
-    padding:16px;
-    font-size:16px;
-    font-weight:700;
-    cursor:pointer;
-    width:100%;
-  }
+  body{background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; display:flex; justify-content:center;}
+  #app{width:100%; max-width:420px; min-height:100vh; position:relative; overflow:hidden; background:var(--bg);}
+  .screen{position:absolute; inset:0; display:flex; flex-direction:column; padding:20px; overflow-y:auto; transition:opacity .25s ease;}
+  .hidden{opacity:0; pointer-events:none;}
+  h1{font-family:Georgia,'Times New Roman',serif; font-weight:700; font-size:30px; letter-spacing:-.5px; margin:6px 0 4px;}
+  .sub{color:var(--text-dim); font-size:14px; margin-bottom:16px; line-height:1.4;}
+  .back{color:var(--text-dim); font-size:14px; margin-bottom:8px; cursor:pointer; display:inline-block;}
+  .btn{border:none; border-radius:14px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; width:100%;}
   .btn-primary{background:var(--accent); color:#2a1500;}
-  .btn-ghost{background:transparent; color:var(--text-dim); margin-top:10px;}
-  .back{color:var(--text-dim); font-size:14px; margin-bottom:10px; cursor:pointer; display:inline-block;}
-
-  /* Setup общие */
-  .stepper{
-    display:flex; align-items:center; justify-content:center; gap:22px;
-    background:var(--surface); border-radius:16px; padding:20px; margin:10px 0 20px;
-  }
-  .stepper button{
-    width:44px; height:44px; border-radius:50%; border:none;
-    background:var(--surface-2); color:var(--text); font-size:22px; cursor:pointer;
-  }
-  .stepper .count{font-size:32px; font-weight:700; min-width:40px; text-align:center;}
-  .category{
-    background:var(--surface); border-radius:14px; padding:14px 16px; margin-bottom:10px;
-    display:flex; justify-content:space-between; align-items:center; cursor:pointer;
-    border:2px solid transparent;
-  }
+  .btn-danger{background:var(--accent-2); color:#3a0018;}
+  .btn-ghost{background:transparent; color:var(--text-dim); margin-top:8px;}
+  .btn-row{display:flex; gap:10px;}
+  .btn-row button{flex:1;}
+  .ticket{background:var(--surface); border-radius:18px; padding:16px 16px 16px 22px; margin-bottom:12px; position:relative; display:flex; align-items:center; gap:14px; cursor:pointer; border:1px solid rgba(255,255,255,.05);}
+  .ticket::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:repeating-linear-gradient(to bottom, transparent 0 6px, rgba(0,0,0,.35) 6px 12px); border-radius:4px 0 0 4px;}
+  .ticket .emoji{font-size:26px; width:36px; text-align:center;}
+  .ticket .info{flex:1;}
+  .ticket .name{font-size:15px; font-weight:600;}
+  .ticket .meta{font-size:11.5px; color:var(--text-dim); margin-top:2px;}
+  .group-label{color:var(--text-dim); font-size:12px; margin:16px 0 8px; padding-left:2px;}
+  .stepper{display:flex; align-items:center; justify-content:center; gap:22px; background:var(--surface); border-radius:16px; padding:18px; margin:8px 0 18px;}
+  .stepper button{width:42px; height:42px; border-radius:50%; border:none; background:var(--surface-2); color:var(--text); font-size:20px; cursor:pointer;}
+  .stepper .count{font-size:28px; font-weight:700; min-width:36px; text-align:center;}
+  .category{background:var(--surface); border-radius:14px; padding:13px 16px; margin-bottom:9px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; border:2px solid transparent;}
   .category.active{border-color:var(--accent);}
-  .toggle-row{display:flex; gap:10px; margin-bottom:20px;}
+  .toggle-row{display:flex; gap:10px; margin-bottom:16px;}
   .toggle-row .category{flex:1; margin-bottom:0; text-align:center; justify-content:center;}
-
-  /* Игровой экран (слова) */
-  .game-screen{justify-content:space-between; padding-top:16px;}
-  .timer{
-    align-self:flex-end;
-    font-size:22px; font-weight:700; color:var(--accent-2);
-    font-variant-numeric:tabular-nums;
-  }
+  .timer{align-self:flex-end; font-size:20px; font-weight:700; color:var(--accent-2); font-variant-numeric:tabular-nums;}
   .word-wrap{flex:1; display:flex; align-items:center; justify-content:center; text-align:center;}
-  .word{font-size:44px; font-weight:800; line-height:1.15;}
-  .score-row{display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); margin-bottom:10px;}
-  .actions{display:flex; gap:12px;}
-  .actions button{flex:1; padding:18px; border-radius:16px; border:none; font-size:16px; font-weight:700; cursor:pointer;}
+  .word{font-size:42px; font-weight:800; line-height:1.15;}
+  .score-row{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim); margin-bottom:8px;}
+  .actions{display:flex; gap:10px;}
+  .actions button{flex:1; padding:16px; border-radius:16px; border:none; font-size:14.5px; font-weight:700; cursor:pointer;}
   .btn-skip{background:var(--surface-2); color:var(--text);}
   .btn-correct{background:var(--accent); color:#2a1500;}
-
-  /* Результат */
-  .result-num{font-size:60px; font-weight:800; color:var(--accent); text-align:center; margin:26px 0 4px;}
-  .result-label{text-align:center; color:var(--text-dim); margin-bottom:26px;}
-
-  /* Карточки (правда/действие, я никогда не) */
-  .card-type{
-    align-self:center;
-    background:var(--surface-2); color:var(--accent);
-    font-size:12px; font-weight:700;
-    padding:6px 14px; border-radius:20px; margin-bottom:20px;
-  }
-  .card-box{
-    flex:1; display:flex; align-items:center; justify-content:center;
-    background:var(--surface); border-radius:20px; padding:30px; text-align:center;
-  }
-  .card-text{font-size:24px; font-weight:600; line-height:1.4;}
-  .card-progress{text-align:center; color:var(--text-dim); font-size:13px; margin-top:14px;}
-
-  /* Шпион */
-  .pass-box{
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:18px;
-  }
-  .pass-player{font-size:26px; font-weight:800;}
-  .role-card{
-    background:var(--surface); border-radius:20px; padding:34px 24px; text-align:center;
-  }
-  .role-card .role-title{font-size:14px; color:var(--text-dim); margin-bottom:10px;}
-  .role-card .role-value{font-size:30px; font-weight:800;}
-  .role-spy{color:var(--accent-2);}
-  .role-normal{color:var(--accent);}
-  .discuss-timer{font-size:56px; font-weight:800; text-align:center; margin:30px 0; color:var(--accent-2); font-variant-numeric:tabular-nums;}
-
-  /* Кто я */
-  .forehead-progress{text-align:center; color:var(--text-dim); font-size:14px; margin-bottom:6px;}
-  .forehead-instruction{text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:16px;}
-  .forehead-word{
-    flex:1; display:flex; align-items:center; justify-content:center;
-    font-size:52px; font-weight:800; text-align:center;
-  }
-
-  /* Голосовалка */
-  .vote-box{
-    flex:1; display:flex; align-items:center; justify-content:center;
-    background:var(--surface); border-radius:20px; padding:30px; text-align:center;
-  }
-  .vote-text{font-size:26px; font-weight:700; line-height:1.35;}
+  .btn-violation{background:var(--danger); color:#3a0018;}
+  .card-box{flex:1; display:flex; align-items:center; justify-content:center; background:var(--surface); border-radius:20px; padding:26px; text-align:center; margin-bottom:14px;}
+  .card-text{font-size:22px; font-weight:600; line-height:1.4;}
+  .taboo-list{display:flex; flex-direction:column; gap:6px; margin-top:16px;}
+  .taboo-item{background:var(--surface-2); color:var(--accent-2); font-size:15px; font-weight:600; padding:8px 14px; border-radius:10px;}
+  /* блюр-раскрытие */
+  .reveal-box{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; text-align:center;}
+  .reveal-card{background:var(--surface); border-radius:20px; padding:34px 20px; width:100%; position:relative; min-height:110px; display:flex; align-items:center; justify-content:center;}
+  .reveal-card .content{font-size:26px; font-weight:800;}
+  .reveal-card.blurred .content{filter:blur(14px); user-select:none;}
+  .reveal-hint{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--text-dim); font-weight:700;}
+  .warn-banner{background:var(--accent-2); color:#3a0018; font-weight:800; font-size:18px; text-align:center; padding:14px; border-radius:14px; margin-bottom:16px;}
+  .player-row{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border-radius:12px; padding:12px 16px; margin-bottom:8px;}
+  .player-row.done{opacity:.5;}
+  .status-dot{width:8px; height:8px; border-radius:50%; background:var(--accent-2); display:inline-block; margin-right:8px;}
+  .status-dot.ok{background:var(--accent);}
+  .input-row{display:flex; gap:8px; margin-bottom:14px;}
+  .input-row input{flex:1; background:var(--surface); border:none; border-radius:12px; padding:14px; color:var(--text); font-size:15px;}
+  .input-row input::placeholder{color:var(--text-dim);}
+  .add-btn{background:var(--accent); color:#2a1500; border:none; border-radius:12px; padding:0 18px; font-weight:800; font-size:20px; cursor:pointer;}
+  .chip-list{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .chip{background:var(--surface-2); border-radius:20px; padding:8px 12px; font-size:14px; display:flex; align-items:center; gap:8px;}
+  .chip .rm{color:var(--accent-2); cursor:pointer; font-weight:800;}
+  .vote-name-btn{width:100%; text-align:left; background:var(--surface); border:2px solid transparent; border-radius:12px; padding:14px 16px; margin-bottom:8px; font-size:15px; font-weight:600; color:var(--text); cursor:pointer; display:flex; justify-content:space-between;}
+  .vote-name-btn .votes{color:var(--accent);}
+  .review-item{display:flex; justify-content:space-between; align-items:center; background:var(--surface); border-radius:12px; padding:12px 16px; margin-bottom:8px; cursor:pointer;}
+  .review-item.rejected .word-label{text-decoration:line-through; color:var(--text-dim);}
+  .discuss-timer{font-size:52px; font-weight:800; text-align:center; margin:26px 0; color:var(--accent-2); font-variant-numeric:tabular-nums;}
+  .stats-table{background:var(--surface); border-radius:14px; padding:12px 16px; margin-bottom:14px;}
+  .stats-row{display:flex; justify-content:space-between; padding:6px 0; font-size:14px;}
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ЭКРАН: ЗАГРУЗКА -->
-  <div class="screen" id="screen-loading">
-    <div style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;">
-      <div style="font-size:32px;">🎲</div>
-      <div class="sub" id="loading-text">Загружаем колоды...</div>
-    </div>
+<!-- ЗАГРУЗКА -->
+<div class="screen" id="screen-loading">
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;">
+    <div style="font-size:32px;">🎲</div>
+    <div class="sub" id="loading-text">Загружаем колоды...</div>
+  </div>
+</div>
+
+<!-- ИГРОКИ (общий модуль) -->
+<div class="screen hidden" id="screen-players">
+  <h1>Кто играет?</h1>
+  <div class="sub">Список игроков нужен для Шпиона, Кто Я, Правды или действия и голосовалки — вводится один раз за вечер</div>
+  <div class="input-row">
+    <input type="text" id="player-name-input" placeholder="Имя игрока" onkeydown="if(event.key==='Enter')addPlayer()">
+    <button class="add-btn" onclick="addPlayer()">+</button>
+  </div>
+  <div class="chip-list" id="player-chip-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" id="players-continue-btn" onclick="goTo('catalog')" disabled>Продолжить</button>
+</div>
+
+<!-- КАТАЛОГ -->
+<div class="screen hidden" id="screen-catalog">
+  <h1>Игры</h1>
+  <div class="sub" id="catalog-players-sub">Выбери, во что играем</div>
+  <div class="ticket" onclick="goTo('players')" style="background:var(--surface-2);">
+    <div class="emoji">👥</div>
+    <div class="info"><div class="name">Изменить игроков</div><div class="meta" id="catalog-players-count">0 игроков</div></div>
   </div>
 
-  <!-- ЭКРАН: КАТАЛОГ -->
-  <div class="screen hidden" id="screen-catalog">
-    <h1>Игры</h1>
-    <div class="sub">Выбери, во что играем сегодня</div>
+  <div class="group-label">Объясни слово</div>
+  <div class="ticket" onclick="openWordSetup('crocodile')"><div class="emoji">🎭</div><div class="info"><div class="name">Крокодил</div><div class="meta">Показывай жестами, без слов</div></div></div>
+  <div class="ticket" onclick="openWordSetup('alias')"><div class="emoji">🗣️</div><div class="info"><div class="name">Элиас</div><div class="meta">Объясняй словами, команды</div></div></div>
+  <div class="ticket" onclick="openTabooSetup()"><div class="emoji">🚫</div><div class="info"><div class="name">Табу</div><div class="meta">Без запрещённых слов</div></div></div>
 
-    <div class="group-label">Объясни слово</div>
-    <div class="ticket" onclick="openWordSetup('Крокодил')">
-      <div class="emoji">🎭</div>
-      <div class="info"><div class="name">Крокодил</div><div class="meta">2+ команды · без слов</div></div>
-    </div>
-    <div class="ticket" onclick="openWordSetup('Элиас')">
-      <div class="emoji">🗣️</div>
-      <div class="info"><div class="name">Элиас</div><div class="meta">2+ команды · объясняй словами</div></div>
-    </div>
-    <div class="ticket" onclick="openWordSetup('Табу')">
-      <div class="emoji">🚫</div>
-      <div class="info"><div class="name">Табу / Ассоциации</div><div class="meta">2+ команды · без запрещённых слов</div></div>
-    </div>
+  <div class="group-label">Роли и детектив</div>
+  <div class="ticket" onclick="openSpySetup()"><div class="emoji">🕵️</div><div class="info"><div class="name">Шпион</div><div class="meta">3+ игрока · телефон по кругу</div></div></div>
+  <div class="ticket" onclick="openWhoamiSetup()"><div class="emoji">🤨</div><div class="info"><div class="name">Кто я</div><div class="meta">3+ игрока · отворачиваемся</div></div></div>
 
-    <div class="group-label">Роли и детектив</div>
-    <div class="ticket" onclick="openSpySetup()">
-      <div class="emoji">🕵️</div>
-      <div class="info"><div class="name">Шпион</div><div class="meta">3+ игрока · телефон по кругу</div></div>
-    </div>
-    <div class="ticket" onclick="openWhoamiSetup()">
-      <div class="emoji">🤨</div>
-      <div class="info"><div class="name">Кто я</div><div class="meta">2+ игрока · слово у лба</div></div>
-    </div>
+  <div class="group-label">Карточки и фанты</div>
+  <div class="ticket" onclick="openTruthDareSetup()"><div class="emoji">🎲</div><div class="info"><div class="name">Правда или действие</div><div class="meta">По очереди</div></div></div>
+  <div class="ticket" onclick="openNeverSetup()"><div class="emoji">🍹</div><div class="info"><div class="name">Я никогда не...</div><div class="meta">Фанты</div></div></div>
 
-    <div class="group-label">Карточки и фанты</div>
-    <div class="ticket" onclick="openCardsSetup('dare')">
-      <div class="emoji">🎲</div>
-      <div class="info"><div class="name">Правда или действие</div><div class="meta">2+ игрока · по кругу</div></div>
-    </div>
-    <div class="ticket" onclick="openCardsSetup('never')">
-      <div class="emoji">🍹</div>
-      <div class="info"><div class="name">Я никогда не...</div><div class="meta">2+ игрока · фанты</div></div>
-    </div>
+  <div class="group-label">Голосовалки</div>
+  <div class="ticket" onclick="openMostLikelySetup()"><div class="emoji">👉</div><div class="info"><div class="name">Кто из нас скорее</div><div class="meta">Голосуем за игрока</div></div></div>
+  <div class="ticket" onclick="openWouldYouSetup()"><div class="emoji">⚖️</div><div class="info"><div class="name">Что бы ты выбрал</div><div class="meta">По очереди</div></div></div>
+</div>
 
-    <div class="group-label">Голосовалки</div>
-    <div class="ticket" onclick="openVoteSetup('likely')">
-      <div class="emoji">👉</div>
-      <div class="info"><div class="name">Кто из нас скорее</div><div class="meta">2+ игрока · голосуем вслух</div></div>
+<!-- ============ ОБЪЯСНИ СЛОВО (Крокодил / Элиас) ============ -->
+<div class="screen hidden" id="screen-setup-word">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1 id="word-setup-title">Крокодил</h1>
+  <div class="sub" style="margin-bottom:6px;">Количество команд</div>
+  <div class="stepper"><button onclick="changeTeams(-1)">–</button><div class="count" id="teams-count">2</div><button onclick="changeTeams(1)">+</button></div>
+  <div class="sub" style="margin-bottom:6px;">Категория слов</div>
+  <div class="category active" data-cat="normal" onclick="selectWordCategory(this)">Обычные</div>
+  <div class="category" data-cat="movies" onclick="selectWordCategory(this)">Фильмы и сериалы</div>
+  <div class="category" data-cat="adult" onclick="selectWordCategory(this)">Для взрослых 18+</div>
+  <div class="sub" style="margin-bottom:6px;">Длительность раунда</div>
+  <div class="toggle-row" id="word-duration-row">
+    <div class="category" data-dur="30" onclick="selectWordDuration(this)">30с</div>
+    <div class="category active" data-dur="60" onclick="selectWordDuration(this)">60с</div>
+    <div class="category" data-dur="90" onclick="selectWordDuration(this)">90с</div>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startWordFlow()">Начать игру</button>
+</div>
+
+<div class="screen hidden" id="screen-pass-word">
+  <div class="reveal-box">
+    <div class="sub">Передайте телефон</div>
+    <div class="pass-player" style="font-size:26px; font-weight:800;" id="word-pass-name">Команда 1</div>
+    <button class="btn btn-primary" onclick="goTo('reveal-word')">Готово, я увидел(а) слово</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-reveal-word">
+  <div class="reveal-box">
+    <div class="reveal-card blurred" id="word-reveal-card" onclick="unblurWordCard()">
+      <div class="content" id="word-reveal-text">СЛОВО</div>
+      <div class="reveal-hint" id="word-reveal-hint">Нажми, чтобы увидеть слово</div>
     </div>
-    <div class="ticket" onclick="openVoteSetup('wouldyou')">
-      <div class="emoji">⚖️</div>
-      <div class="info"><div class="name">Что бы ты выбрал</div><div class="meta">2+ игрока · выбираем по кругу</div></div>
+    <button class="btn btn-primary" onclick="beginWordTimer()">Начать показывать</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-game-word">
+  <div class="score-row"><span id="word-team-label">Команда 1</span><span id="word-guessed-count">Угадано: 0</span></div>
+  <div class="timer" id="word-timer">01:00</div>
+  <div class="word-wrap"><div class="word" id="word-current">СЛОН</div></div>
+  <div class="actions">
+    <button class="btn-skip" onclick="wordAction('skip')">Пропустить</button>
+    <button class="btn-correct" onclick="wordAction('correct')">Угадано ✓</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-review-word">
+  <h1>Время вышло!</h1>
+  <div class="sub">Угадано за раунд: <b id="review-word-count">0</b>. Нажми на слово, если посчитали нечестно — оно снимется со счёта</div>
+  <div id="review-word-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="finishWordRound()">Передать следующему</button>
+</div>
+
+<!-- ============ ТАБУ ============ -->
+<div class="screen hidden" id="screen-setup-taboo">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Табу</h1>
+  <div class="sub" style="margin-bottom:6px;">Количество команд</div>
+  <div class="stepper"><button onclick="changeTeams(-1)">–</button><div class="count" id="taboo-teams-count">2</div><button onclick="changeTeams(1)">+</button></div>
+  <div class="category active" id="taboo-penalty-toggle" onclick="toggleTabooPenalty(this)">Штраф за нарушение: −1 очко</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startTabooFlow()">Начать игру</button>
+</div>
+
+<div class="screen hidden" id="screen-pass-taboo">
+  <div class="reveal-box">
+    <div class="sub">Передайте телефон</div>
+    <div style="font-size:26px; font-weight:800;" id="taboo-pass-name">Команда 1</div>
+    <button class="btn btn-primary" onclick="goTo('reveal-taboo')">Готово, я увидел(а) карточку</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-reveal-taboo">
+  <div class="reveal-box">
+    <div class="reveal-card blurred" id="taboo-reveal-card" onclick="unblurTabooCard()" style="flex-direction:column; padding:24px;">
+      <div class="content" id="taboo-reveal-word">СЛОВО</div>
+      <div class="taboo-list" id="taboo-reveal-list"></div>
+      <div class="reveal-hint" id="taboo-reveal-hint">Нажми, чтобы увидеть карточку</div>
+    </div>
+    <button class="btn btn-primary" onclick="beginTabooTimer()">Начать объяснять</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-game-taboo">
+  <div class="score-row"><span id="taboo-team-label">Команда 1</span><span id="taboo-guessed-count">Угадано: 0</span></div>
+  <div class="timer" id="taboo-timer">01:00</div>
+  <div class="word-wrap" style="flex-direction:column;">
+    <div class="word" id="taboo-current-word" style="margin-bottom:14px;">СЛОН</div>
+    <div class="taboo-list" id="taboo-current-list"></div>
+  </div>
+  <div class="btn-row" style="margin-bottom:8px;">
+    <button class="btn-violation" onclick="tabooAction('violation')">Нарушение ⚠️</button>
+  </div>
+  <div class="actions">
+    <button class="btn-skip" onclick="tabooAction('skip')">Пропустить</button>
+    <button class="btn-correct" onclick="tabooAction('correct')">Угадано ✓</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-review-taboo">
+  <h1>Время вышло!</h1>
+  <div class="sub">Итог раунда: <b id="review-taboo-count">0</b> очков. Можно оспорить слово тапом</div>
+  <div id="review-taboo-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="finishTabooRound()">Передать следующему</button>
+</div>
+
+<!-- ============ ШПИОН ============ -->
+<div class="screen hidden" id="screen-setup-spy">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Шпион</h1>
+  <div class="sub" id="spy-players-hint">Играют: —</div>
+  <div class="category active" data-mode="none" onclick="selectSpyMode(this)">Шпион не знает ничего</div>
+  <div class="category" data-mode="category" onclick="selectSpyMode(this)">Шпион знает категорию</div>
+  <div class="sub" style="margin:14px 0 6px;">Количество шпионов</div>
+  <div class="stepper"><button onclick="changeSpyCount(-1)">–</button><div class="count" id="spy-count">1</div><button onclick="changeSpyCount(1)">+</button></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startSpyGame()">Раздать роли</button>
+</div>
+
+<div class="screen hidden" id="screen-pass-spy">
+  <div class="reveal-box">
+    <div class="sub">Передайте телефон</div>
+    <div style="font-size:26px; font-weight:800;" id="spy-pass-name">Игрок 1</div>
+    <button class="btn btn-primary" onclick="revealSpyRole()">Посмотреть роль</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-reveal-spy">
+  <div class="reveal-box">
+    <div class="reveal-card blurred" id="spy-reveal-card" onclick="unblurSpyCard()">
+      <div class="content" id="spy-reveal-text">Локация: Ресторан</div>
+      <div class="reveal-hint" id="spy-reveal-hint">Нажми, чтобы увидеть роль</div>
+    </div>
+    <button class="btn btn-primary" onclick="nextSpyPlayer()">Понял(а), передать дальше</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="screen-discuss-spy">
+  <h1>Обсуждение</h1>
+  <div class="sub">Задавайте друг другу вопросы про локацию и вычисляйте шпиона вслух</div>
+  <div class="discuss-timer" id="spy-discuss-timer">03:00</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="goTo('vote-spy')">Перейти к голосованию</button>
+</div>
+
+<div class="screen hidden" id="screen-vote-spy">
+  <h1>Кто шпион?</h1>
+  <div class="sub">Обсудите вслух и тапните на того, за кого проголосовало большинство</div>
+  <div id="spy-vote-list"></div>
+  <div style="flex:1"></div>
+</div>
+
+<div class="screen hidden" id="screen-result-spy">
+  <h1 id="spy-result-title">Шпион раскрыт!</h1>
+  <div class="reveal-card" style="margin-bottom:12px;"><div class="content" style="font-size:20px;" id="spy-result-location">Локация: Ресторан</div></div>
+  <div class="reveal-card" style="margin-bottom:16px;"><div class="content" style="font-size:20px; color:var(--accent-2);" id="spy-result-spies">Шпион: Игрок 3</div></div>
+  <div id="spy-guess-block" style="display:none;">
+    <div class="sub">Дать шпиону шанс угадать слово?</div>
+    <div class="btn-row" style="margin-bottom:16px;">
+      <button class="btn-primary btn" onclick="spyGuessCorrect(true)">Угадал верно</button>
+      <button class="btn-skip btn" onclick="spyGuessCorrect(false)">Не угадал</button>
     </div>
   </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="endGameScreen('Шпион', spyResultSummary(), startSpyGame)">Итог раунда</button>
+</div>
 
-  <!-- ===================== ДВИЖОК 1: ОБЪЯСНИ СЛОВО ===================== -->
-  <div class="screen hidden" id="screen-setup-word">
-    <div class="back" onclick="goTo('catalog')">← Назад</div>
-    <h1 id="word-setup-title">Крокодил</h1>
-    <div class="sub">Настрой игру перед стартом</div>
-    <div class="sub" style="margin-bottom:6px;">Количество команд</div>
-    <div class="stepper">
-      <button onclick="changeTeams(-1)">–</button>
-      <div class="count" id="teams-count">2</div>
-      <button onclick="changeTeams(1)">+</button>
-    </div>
-    <div class="sub" style="margin-bottom:6px;">Категория слов</div>
-    <div class="category active" data-cat="normal" onclick="selectCategory(this)">Обычные</div>
-    <div class="category" data-cat="movies" onclick="selectCategory(this)">Фильмы и сериалы</div>
-    <div class="category" data-cat="adult" onclick="selectCategory(this)">Для взрослых 18+</div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startWordGame()">Начать игру</button>
+<!-- ============ КТО Я ============ -->
+<div class="screen hidden" id="screen-setup-whoami">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Кто я</h1>
+  <div class="sub" id="whoami-players-hint">Играют: —</div>
+  <div class="sub">Роль каждого будет показана всем, КРОМЕ него самого — предупреждение появится крупно на экране</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startWhoamiGame()">Начать игру</button>
+</div>
+
+<div class="screen hidden" id="screen-assign-whoami">
+  <div class="warn-banner" id="whoami-warn">ОТВЕРНИСЬ, ИМЯ!</div>
+  <div class="sub" style="text-align:center;">Все остальные смотрят на экран</div>
+  <div class="reveal-box">
+    <div class="reveal-card" style="min-height:80px;"><div class="content" id="whoami-assign-role">Персонаж</div></div>
   </div>
+  <button class="btn btn-primary" onclick="nextWhoamiAssign()">Далее</button>
+</div>
 
-  <div class="screen hidden game-screen" id="screen-game-word">
-    <div class="score-row"><span id="word-team-label">Команда 1</span><span id="word-progress">Слово 1</span></div>
-    <div class="timer" id="word-timer">01:00</div>
-    <div class="word-wrap"><div class="word" id="word-current">СЛОН</div></div>
-    <div class="actions">
-      <button class="btn-skip" onclick="nextWord(false)">Пропустить</button>
-      <button class="btn-correct" onclick="nextWord(true)">Верно ✓</button>
-    </div>
+<div class="screen hidden" id="screen-game-whoami">
+  <h1>Угадываем роли</h1>
+  <div class="sub">По очереди задавайте вопросы да/нет вслух</div>
+  <div id="whoami-player-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" id="whoami-guess-btn" onclick="whoamiCurrentGuessed()">Я угадал(а) свою роль!</button>
+</div>
+
+<div class="screen hidden" id="screen-confirm-whoami">
+  <div class="reveal-box">
+    <div class="sub" id="whoami-confirm-name">Кем был Игрок 1?</div>
+    <div class="reveal-card"><div class="content" id="whoami-confirm-role">Персонаж</div></div>
+    <button class="btn btn-primary" onclick="whoamiAfterConfirm()">Продолжить</button>
   </div>
+</div>
 
-  <div class="screen hidden" id="screen-result-word">
-    <h1>Раунд окончен</h1>
-    <div class="result-num" id="word-result-score">0</div>
-    <div class="result-label">угаданных слов</div>
-    <button class="btn btn-primary" onclick="startWordGame()">Играть ещё раз</button>
-    <button class="btn btn-ghost" onclick="goTo('catalog')">В каталог игр</button>
+<!-- ============ ПРАВДА ИЛИ ДЕЙСТВИЕ ============ -->
+<div class="screen hidden" id="screen-setup-truthdare">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Правда или действие</h1>
+  <div class="sub" id="td-players-hint">Играют: —</div>
+  <div class="sub" style="margin-bottom:6px;">Уровень</div>
+  <div class="toggle-row" id="td-level-row">
+    <div class="category active" data-lvl="normal" onclick="selectTdLevel(this)">Дружеский</div>
+    <div class="category" data-lvl="adult" onclick="selectTdLevel(this)">18+</div>
   </div>
-
-  <!-- ===================== ДВИЖОК 2: КАРТОЧКИ (правда/действие, я никогда не) ===================== -->
-  <div class="screen hidden" id="screen-setup-cards">
-    <div class="back" onclick="goTo('catalog')">← Назад</div>
-    <h1 id="cards-setup-title">Правда или действие</h1>
-    <div class="sub">Карточки будут появляться по очереди — следующий игрок жмёт «Далее»</div>
-    <div class="toggle-row" id="cards-toggle-row">
-      <div class="category active" data-type="truth" onclick="selectCardMode(this)">Правда</div>
-      <div class="category" data-type="dare" onclick="selectCardMode(this)">Действие</div>
-    </div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startCardsGame()">Начать игру</button>
+  <div class="sub" style="margin-bottom:6px;">Кто выбирает следующего</div>
+  <div class="toggle-row" id="td-order-row">
+    <div class="category active" data-order="auto" onclick="selectTdOrder(this)">По кругу</div>
+    <div class="category" data-order="manual" onclick="selectTdOrder(this)">Выбирает игрок</div>
   </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startTruthDareGame()">Начать игру</button>
+</div>
 
-  <div class="screen hidden game-screen" id="screen-game-cards">
-    <div class="card-type" id="cards-current-type">ПРАВДА</div>
-    <div class="card-box"><div class="card-text" id="cards-current-text">Текст карточки</div></div>
-    <div class="card-progress" id="cards-progress">Карточка 1</div>
-    <button class="btn btn-primary" style="margin-top:16px;" onclick="nextCard()">Следующая карточка →</button>
-    <button class="btn btn-ghost" onclick="goTo('catalog')">Закончить</button>
-  </div>
-
-  <!-- ===================== ДВИЖОК 3: ШПИОН ===================== -->
-  <div class="screen hidden" id="screen-setup-spy">
-    <div class="back" onclick="goTo('catalog')">← Назад</div>
-    <h1>Шпион</h1>
-    <div class="sub">Один игрок не узнает локацию — его задача не спалиться</div>
-    <div class="sub" style="margin-bottom:6px;">Количество игроков</div>
-    <div class="stepper">
-      <button onclick="changeSpyPlayers(-1)">–</button>
-      <div class="count" id="spy-players-count">4</div>
-      <button onclick="changeSpyPlayers(1)">+</button>
-    </div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startSpyGame()">Раздать роли</button>
-  </div>
-
-  <div class="screen hidden" id="screen-spy-reveal">
-    <div class="pass-box">
-      <div class="sub">Передай телефон игроку</div>
-      <div class="pass-player" id="spy-pass-name">Игрок 1</div>
-      <button class="btn btn-primary" onclick="revealSpyRole()">Посмотреть роль</button>
+<div class="screen hidden" id="screen-turn-truthdare">
+  <div class="reveal-box">
+    <div class="sub">Ход игрока</div>
+    <div style="font-size:26px; font-weight:800;" id="td-turn-name">Игрок 1</div>
+    <div class="btn-row" style="width:100%;">
+      <button class="btn btn-primary" onclick="showTdCard('truth')">Правда</button>
+      <button class="btn btn-primary" style="background:var(--accent-2); color:#3a0018;" onclick="showTdCard('dare')">Действие</button>
     </div>
   </div>
+</div>
 
-  <div class="screen hidden" id="screen-spy-role">
-    <div class="pass-box">
-      <div class="role-card" id="spy-role-card">
-        <div class="role-title">Твоя роль</div>
-        <div class="role-value" id="spy-role-value">Локация: Ресторан</div>
-      </div>
-      <button class="btn btn-primary" onclick="nextSpyPlayer()">Понял(а), передать дальше</button>
-    </div>
+<div class="screen hidden" id="screen-card-truthdare">
+  <div class="card-box"><div class="card-text" id="td-card-text">Текст карточки</div></div>
+  <div class="btn-row" style="margin-bottom:8px;">
+    <button class="btn-skip btn" onclick="replaceTdCard()">Заменить 🔄</button>
+    <button class="btn-primary btn" onclick="tdCardDone()">Выполнено ✓</button>
   </div>
+  <button class="btn btn-ghost" onclick="endGameScreen('Правда или действие', 'Игра окончена', null)">Закончить игру</button>
+</div>
 
-  <div class="screen hidden" id="screen-spy-discuss">
-    <h1>Обсуждение</h1>
-    <div class="sub">Задавайте друг другу вопросы про локацию и вычисляйте шпиона вслух</div>
-    <div class="discuss-timer" id="spy-discuss-timer">03:00</div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="finishSpyDiscussion()">Завершить и объявить результат</button>
-  </div>
+<div class="screen hidden" id="screen-next-truthdare">
+  <h1>Кто следующий?</h1>
+  <div id="td-next-list"></div>
+</div>
 
-  <div class="screen hidden" id="screen-spy-result">
-    <h1>Результат</h1>
-    <div class="role-card" style="margin-bottom:16px;">
-      <div class="role-title">Локация была</div>
-      <div class="role-value" id="spy-result-location">Ресторан</div>
-    </div>
-    <div class="role-card">
-      <div class="role-title">Шпион</div>
-      <div class="role-value role-spy" id="spy-result-name">Игрок 3</div>
-    </div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startSpyGame()">Играть ещё раз</button>
-    <button class="btn btn-ghost" onclick="goTo('catalog')">В каталог игр</button>
+<!-- ============ Я НИКОГДА НЕ ============ -->
+<div class="screen hidden" id="screen-setup-never">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Я никогда не...</h1>
+  <div class="sub" style="margin-bottom:6px;">Режим</div>
+  <div class="toggle-row" id="never-mode-row">
+    <div class="category active" data-mode="pass" onclick="selectNeverMode(this)">По кругу</div>
+    <div class="category" data-mode="single" onclick="selectNeverMode(this)">Один читает все</div>
   </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startNeverGame()">Начать игру</button>
+</div>
 
-  <!-- ===================== ДВИЖОК 4: КТО Я ===================== -->
-  <div class="screen hidden" id="screen-setup-whoami">
-    <div class="back" onclick="goTo('catalog')">← Назад</div>
-    <h1>Кто я</h1>
-    <div class="sub">Держи телефон экраном к остальным, не глядя на него сам</div>
-    <div class="sub" style="margin-bottom:6px;">Количество игроков</div>
-    <div class="stepper">
-      <button onclick="changeWhoamiPlayers(-1)">–</button>
-      <div class="count" id="whoami-players-count">4</div>
-      <button onclick="changeWhoamiPlayers(1)">+</button>
-    </div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startWhoamiGame()">Начать игру</button>
+<div class="screen hidden" id="screen-pass-never">
+  <div class="reveal-box">
+    <div class="sub">Передайте телефон</div>
+    <div style="font-size:26px; font-weight:800;" id="never-pass-name">Игрок 1</div>
+    <button class="btn btn-primary" onclick="showNeverPhrase()">Готов(а), читаю</button>
   </div>
+</div>
 
-  <div class="screen hidden" id="screen-game-whoami">
-    <div class="forehead-progress" id="whoami-progress">Игрок 1 из 4</div>
-    <div class="forehead-instruction">Отдай телефон игроку, он держит экран у лба и не смотрит</div>
-    <div class="forehead-word" id="whoami-word">СЛОН</div>
-    <div class="actions">
-      <button class="btn-skip" onclick="whoamiNextWord()">Другое слово</button>
-      <button class="btn-correct" onclick="whoamiNextPlayer()">Угадал(а) ✓</button>
-    </div>
-  </div>
+<div class="screen hidden" id="screen-phrase-never">
+  <div class="card-box"><div class="card-text" id="never-phrase-text">Я никогда не...</div></div>
+  <button class="btn btn-primary" onclick="nextNeverPhrase()">Следующая фраза →</button>
+  <button class="btn btn-ghost" onclick="endGameScreen('Я никогда не...', 'Игра окончена', null)">Закончить</button>
+</div>
 
-  <div class="screen hidden" id="screen-result-whoami">
-    <h1>Все прошли раунд!</h1>
-    <div class="sub">Можно сыграть ещё раз с новыми словами</div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startWhoamiGame()">Играть ещё раз</button>
-    <button class="btn btn-ghost" onclick="goTo('catalog')">В каталог игр</button>
-  </div>
+<!-- ============ КТО ИЗ НАС СКОРЕЕ (голосование) ============ -->
+<div class="screen hidden" id="screen-setup-mostlikely">
+  <div class="back" onclick="goTo('catalog')">← Назад</div>
+  <h1>Кто из нас скорее</h1>
+  <div class="sub" id="ml-players-hint">Играют: —</div>
+  <div class="sub">По очереди читайте вопрос и тапайте на того, за кого голосуете — можно голосовать вслух и тапать за большинство</div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="startMostLikelyGame()">Начать игру</button>
+</div>
 
-  <!-- ===================== ДВИЖОК 5: ГОЛОСОВАЛКА ===================== -->
-  <div class="screen hidden" id="screen-setup-vote">
-    <div class="back" onclick="goTo('catalog')">← Назад</div>
-    <h1 id="vote-setup-title">Кто из нас скорее</h1>
-    <div class="sub">По очереди читайте вопрос вслух и голосуйте, показывая на человека</div>
-    <div style="flex:1"></div>
-    <button class="btn btn-primary" onclick="startVoteGame()">Начать игру</button>
-  </div>
+<div class="screen hidden" id="screen-phrase-mostlikely">
+  <div class="card-box"><div class="card-text" id="ml-phrase-text">Кто из нас скорее...</div></div>
+  <button class="btn btn-primary" onclick="goTo('vote-mostlikely')">Голосовать →</button>
+</div>
 
-  <div class="screen hidden game-screen" id="screen-game-vote">
-    <div class="card-progress" id="vote-progress">Вопрос 1</div>
-    <div class="vote-box"><div class="vote-text" id="vote-current-text">Текст вопроса</div></div>
-    <button class="btn btn-primary" style="margin-top:16px;" onclick="nextVote()">Следующий вопрос →</button>
-    <button class="btn btn-ghost" onclick="goTo('catalog')">Закончить</button>
+<div class="screen hidden" id="screen-vote-mostlikely">
+  <div class="sub">Тапайте на игрока каждый раз, когда за него голосуют. Когда все проголосовали — жмите "Готово"</div>
+  <div id="ml-vote-list"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" onclick="finishMostLikelyVote()">Готово, посчитать</button>
+</div>
+
+<div class="screen hidden" id="screen-result-mostlikely">
+  <h1 id="ml-result-title">Большинство считает...</h1>
+  <div class="reveal-card" style="margin-bottom:20px;"><div class="content" id="ml-result-name">Игрок 1</div></div>
+  <div style="flex:1"></div>
+  <div class="btn-row">
+    <button class="btn-skip btn" onclick="nextMostLikelyPhrase()">Следующий вопрос →</button>
+    <button class="btn-primary btn" onclick="finishMostLikelyGame()">Итоги</button>
   </div>
+</div>
+
+<!-- ============ ЧТО БЫ ТЫ ВЫБРАЛ ============ -->
+<div class="screen hidden" id="screen-game-wouldyou">
+  <div class="card-box"><div class="card-text" id="wy-text">Вопрос</div></div>
+  <button class="btn btn-primary" onclick="nextWouldYou()">Следующий вопрос →</button>
+  <button class="btn btn-ghost" onclick="endGameScreen('Что бы ты выбрал', 'Игра окончена', null)">Закончить</button>
+</div>
+
+<!-- ============ ОБЩИЙ ЭКРАН КОНЦА ИГРЫ ============ -->
+<div class="screen hidden" id="screen-end">
+  <h1 id="end-title">Игра окончена</h1>
+  <div class="sub" id="end-subtitle"></div>
+  <div id="end-extra"></div>
+  <div style="flex:1"></div>
+  <button class="btn btn-primary" id="end-replay-btn" onclick="endReplay()">Ещё раз</button>
+  <button class="btn btn-ghost" onclick="goTo('catalog')">В каталог игр</button>
+</div>
 
 </div>
 
 <script>
-/* ---------- ОБЩЕЕ ---------- */
+/* =================== ОБЩИЕ МОДУЛИ =================== */
+
+// --- вибро-фидбек ---
+function vibrate(){
+  try{
+    if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback){
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    } else if(navigator.vibrate){
+      navigator.vibrate(25);
+    }
+  }catch(e){}
+}
+
+// --- навигация ---
 function goTo(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
   document.getElementById('screen-' + id).classList.remove('hidden');
 }
 
-/* ---------- ДВИЖОК 1: ОБЪЯСНИ СЛОВО ---------- */
-function shuffle(arr){
+// --- Deck<T>: shuffle / draw / reset / remainingCount ---
+function shuffleArray(arr){
   const a = [...arr];
   for(let i = a.length - 1; i > 0; i--){
     const j = Math.floor(Math.random() * (i + 1));
@@ -421,218 +488,596 @@ function shuffle(arr){
   }
   return a;
 }
-
-let wordCategories = {};
-let teams = 2, wordSelectedCategory = 'normal', wordDeck = [], wordIndex = 0, wordScore = 0, wordTimeLeft = 60, wordTimerInterval = null;
-
-function openWordSetup(name){
-  document.getElementById('word-setup-title').textContent = name;
-  goTo('setup-word');
-}
-function changeTeams(delta){
-  teams = Math.min(6, Math.max(2, teams + delta));
-  document.getElementById('teams-count').textContent = teams;
-}
-function selectCategory(el){
-  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  wordSelectedCategory = el.dataset.cat;
-}
-function startWordGame(){
-  wordDeck = shuffle(wordCategories[wordSelectedCategory]);
-  wordScore = 0; wordIndex = 0; wordTimeLeft = 60;
-  document.getElementById('word-team-label').textContent = 'Команда 1';
-  updateWordDisplay(); updateWordTimer();
-  goTo('game-word');
-  clearInterval(wordTimerInterval);
-  wordTimerInterval = setInterval(() => {
-    wordTimeLeft--; updateWordTimer();
-    if(wordTimeLeft <= 0){ clearInterval(wordTimerInterval); finishWordRound(); }
-  }, 1000);
-}
-function updateWordTimer(){
-  const m = String(Math.floor(wordTimeLeft/60)).padStart(2,'0');
-  const s = String(wordTimeLeft%60).padStart(2,'0');
-  document.getElementById('word-timer').textContent = m + ':' + s;
-}
-function updateWordDisplay(){
-  document.getElementById('word-current').textContent = wordDeck[wordIndex % wordDeck.length];
-  document.getElementById('word-progress').textContent = 'Слово ' + (wordIndex+1);
-}
-function nextWord(correct){
-  if(correct) wordScore++;
-  wordIndex++;
-  updateWordDisplay();
-}
-function finishWordRound(){
-  document.getElementById('word-result-score').textContent = wordScore;
-  goTo('result-word');
+function makeDeck(sourceArray){
+  return {
+    all: [...sourceArray],
+    cards: shuffleArray(sourceArray),
+    idx: 0,
+    draw(){
+      if(this.idx >= this.cards.length){ this.cards = shuffleArray(this.all); this.idx = 0; }
+      return this.cards[this.idx++];
+    },
+    remainingCount(){ return this.cards.length - this.idx; },
+    reset(){ this.cards = shuffleArray(this.all); this.idx = 0; }
+  };
 }
 
-/* ---------- ДВИЖОК 2: КАРТОЧКИ ---------- */
-let cardDecks = {};
-let cardsMode = 'truth', cardsIndex = 0, cardsDeck = [];
-
-function openCardsSetup(mode){
-  document.getElementById('cards-setup-title').textContent = mode === 'never' ? 'Я никогда не...' : 'Правда или действие';
-  document.getElementById('cards-toggle-row').style.display = mode === 'never' ? 'none' : 'flex';
-  cardsMode = mode === 'never' ? 'never' : 'truth';
-  goTo('setup-cards');
-}
-function selectCardMode(el){
-  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  cardsMode = el.dataset.type;
-}
-function startCardsGame(){
-  const source = cardsMode === 'dare' ? cardDecks.dare : (cardsMode === 'never' ? cardDecks.never : cardDecks.truth);
-  cardsDeck = shuffle(source);
-  cardsIndex = 0;
-  updateCardDisplay();
-  goTo('game-cards');
-}
-function updateCardDisplay(){
-  document.getElementById('cards-current-type').textContent =
-    cardsMode === 'dare' ? 'ДЕЙСТВИЕ' : (cardsMode === 'never' ? 'Я НИКОГДА НЕ...' : 'ПРАВДА');
-  document.getElementById('cards-current-text').textContent = cardsDeck[cardsIndex % cardsDeck.length];
-  document.getElementById('cards-progress').textContent = 'Карточка ' + (cardsIndex+1);
-}
-function nextCard(){ cardsIndex++; updateCardDisplay(); }
-
-/* ---------- ДВИЖОК 3: ШПИОН ---------- */
-let spyLocations = [];
-let spyPlayers = 4, spyLocation = '', spyIndex = 0, spyIdList = [], spySpyIndex = 0, spyDiscussTime = 180, spyDiscussInterval = null;
-
-function changeSpyPlayers(delta){
-  spyPlayers = Math.min(10, Math.max(3, spyPlayers + delta));
-  document.getElementById('spy-players-count').textContent = spyPlayers;
-}
-function startSpyGame(){
-  spyLocation = spyLocations[Math.floor(Math.random()*spyLocations.length)];
-  spyIdList = Array.from({length:spyPlayers}, (_,i) => i+1);
-  spySpyIndex = Math.floor(Math.random()*spyPlayers);
-  spyIndex = 0;
-  showSpyPass();
-  goTo('spy-reveal');
-}
-function showSpyPass(){
-  document.getElementById('spy-pass-name').textContent = 'Игрок ' + (spyIndex+1);
-}
-function revealSpyRole(){
-  const isSpy = spyIndex === spySpyIndex;
-  document.getElementById('spy-role-value').textContent = isSpy ? 'Ты ШПИОН 🕵️ — вычисли локацию по вопросам' : ('Локация: ' + spyLocation);
-  document.getElementById('spy-role-value').className = 'role-value ' + (isSpy ? 'role-spy' : 'role-normal');
-  goTo('spy-role');
-}
-function nextSpyPlayer(){
-  spyIndex++;
-  if(spyIndex >= spyPlayers){
-    startSpyDiscussion();
-  } else {
-    showSpyPass();
-    goTo('spy-reveal');
+// --- Таймер на Date.now(), устойчив к сворачиванию приложения ---
+function createTimer(durationSec, onTick, onEnd){
+  const endAt = Date.now() + durationSec * 1000;
+  let handle;
+  function tick(){
+    const remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+    onTick(remaining);
+    if(remaining <= 0){ onEnd(); return; }
+    handle = setTimeout(tick, 250);
   }
+  tick();
+  return { cancel(){ clearTimeout(handle); } };
 }
-function startSpyDiscussion(){
-  spyDiscussTime = 180;
-  updateSpyDiscussTimer();
-  goTo('spy-discuss');
-  clearInterval(spyDiscussInterval);
-  spyDiscussInterval = setInterval(() => {
-    spyDiscussTime--; updateSpyDiscussTimer();
-    if(spyDiscussTime <= 0){ clearInterval(spyDiscussInterval); finishSpyDiscussion(); }
-  }, 1000);
-}
-function updateSpyDiscussTimer(){
-  const m = String(Math.floor(spyDiscussTime/60)).padStart(2,'0');
-  const s = String(spyDiscussTime%60).padStart(2,'0');
-  document.getElementById('spy-discuss-timer').textContent = m + ':' + s;
-}
-function finishSpyDiscussion(){
-  clearInterval(spyDiscussInterval);
-  document.getElementById('spy-result-location').textContent = spyLocation;
-  document.getElementById('spy-result-name').textContent = 'Игрок ' + (spySpyIndex+1);
-  goTo('spy-result');
+function formatTime(sec){
+  const m = String(Math.floor(sec/60)).padStart(2,'0');
+  const s = String(sec%60).padStart(2,'0');
+  return m + ':' + s;
 }
 
-/* ---------- ДВИЖОК 4: КТО Я ---------- */
-let whoamiWords = [];
-let whoamiPlayers = 4, whoamiDeck = [], whoamiCurrentPlayer = 0, whoamiWordIndex = 0;
+// --- Общий модуль игроков ---
+let players = [];
+function addPlayer(){
+  const input = document.getElementById('player-name-input');
+  const name = input.value.trim();
+  if(!name) return;
+  players.push(name);
+  input.value = '';
+  renderPlayerChips();
+}
+function removePlayer(i){
+  players.splice(i,1);
+  renderPlayerChips();
+}
+function renderPlayerChips(){
+  const list = document.getElementById('player-chip-list');
+  list.innerHTML = players.map((p,i) =>
+    '<div class="chip">' + p + ' <span class="rm" onclick="removePlayer(' + i + ')">✕</span></div>'
+  ).join('');
+  document.getElementById('players-continue-btn').disabled = players.length < 2;
+  const countLabel = players.length + ' ' + pluralPlayers(players.length);
+  const sub = document.getElementById('catalog-players-sub');
+  const cnt = document.getElementById('catalog-players-count');
+  if(sub) sub.textContent = players.length ? ('Играют: ' + players.join(', ')) : 'Выбери, во что играем';
+  if(cnt) cnt.textContent = countLabel;
+}
+function pluralPlayers(n){
+  const mod10 = n % 10, mod100 = n % 100;
+  if(mod10 === 1 && mod100 !== 11) return 'игрок';
+  if([2,3,4].includes(mod10) && ![12,13,14].includes(mod100)) return 'игрока';
+  return 'игроков';
+}
 
-function changeWhoamiPlayers(delta){
-  whoamiPlayers = Math.min(10, Math.max(2, whoamiPlayers + delta));
-  document.getElementById('whoami-players-count').textContent = whoamiPlayers;
+// --- общий финальный экран ---
+let endReplayFn = null;
+function endGameScreen(title, subtitle, replayFn, extraHtml){
+  document.getElementById('end-title').textContent = title;
+  document.getElementById('end-subtitle').textContent = subtitle || '';
+  document.getElementById('end-extra').innerHTML = extraHtml || '';
+  document.getElementById('end-replay-btn').style.display = replayFn ? 'block' : 'none';
+  endReplayFn = replayFn;
+  goTo('end');
 }
-function startWhoamiGame(){
-  whoamiDeck = shuffle(whoamiWords);
-  whoamiCurrentPlayer = 0;
-  whoamiWordIndex = 0;
-  updateWhoamiDisplay();
-  goTo('game-whoami');
-}
-function updateWhoamiDisplay(){
-  document.getElementById('whoami-progress').textContent = 'Игрок ' + (whoamiCurrentPlayer+1) + ' из ' + whoamiPlayers;
-  document.getElementById('whoami-word').textContent = whoamiDeck[whoamiWordIndex % whoamiDeck.length];
-}
-function whoamiNextWord(){
-  whoamiWordIndex++;
-  updateWhoamiDisplay();
-}
-function whoamiNextPlayer(){
-  whoamiCurrentPlayer++;
-  whoamiWordIndex++;
-  if(whoamiCurrentPlayer >= whoamiPlayers){
-    goTo('result-whoami');
-  } else {
-    updateWhoamiDisplay();
-  }
-}
+function endReplay(){ if(endReplayFn) endReplayFn(); }
 
-/* ---------- ДВИЖОК 5: ГОЛОСОВАЛКА ---------- */
-let voteDecks = {};
-let voteMode = 'likely', voteIndex = 0, voteDeck = [];
+// --- контент (загружается из content.json) ---
+let CONTENT = null;
 
-function openVoteSetup(mode){
-  voteMode = mode;
-  document.getElementById('vote-setup-title').textContent = mode === 'likely' ? 'Кто из нас скорее' : 'Что бы ты выбрал';
-  goTo('setup-vote');
-}
-function startVoteGame(){
-  voteDeck = shuffle(voteDecks[voteMode]);
-  voteIndex = 0;
-  updateVoteDisplay();
-  goTo('game-vote');
-}
-function updateVoteDisplay(){
-  document.getElementById('vote-current-text').textContent = voteDeck[voteIndex % voteDeck.length];
-  document.getElementById('vote-progress').textContent = 'Вопрос ' + (voteIndex+1);
-}
-function nextVote(){ voteIndex++; updateVoteDisplay(); }
-
-/* ---------- ЗАГРУЗКА КОНТЕНТА И TELEGRAM WEBAPP ---------- */
 async function loadContent(){
   try{
     const res = await fetch('content.json');
     if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    wordCategories = data.wordCategories;
-    cardDecks = data.cardDecks;
-    spyLocations = data.spyLocations;
-    whoamiWords = data.whoamiWords;
-    voteDecks = data.voteDecks;
-    goTo('catalog');
+    CONTENT = await res.json();
+    goTo('players');
   } catch(e){
     document.getElementById('loading-text').textContent =
-      'Не удалось загрузить content.json. Файл должен лежать рядом с index.html, и страница должна открываться через веб-сервер (не просто двойным кликом по файлу).';
+      'Не удалось загрузить content.json. Файл должен лежать рядом с index.html, и страница должна открываться через веб-сервер.';
   }
 }
 
 if(window.Telegram && window.Telegram.WebApp){
   window.Telegram.WebApp.ready();
   window.Telegram.WebApp.expand();
+  if(window.Telegram.WebApp.disableVerticalSwipes) window.Telegram.WebApp.disableVerticalSwipes();
+}
+loadContent();
+
+/* =================== ОБЪЯСНИ СЛОВО (Крокодил / Элиас) =================== */
+let teams = 2, wordCategory = 'normal', wordDuration = 60, wordGameTitle = 'Крокодил';
+let wordDeck = null, wordCurrentTeam = 0, wordTeamScores = [], wordRoundWords = [], wordTimer = null;
+
+function openWordSetup(kind){
+  wordGameTitle = kind === 'alias' ? 'Элиас' : 'Крокодил';
+  document.getElementById('word-setup-title').textContent = wordGameTitle;
+  goTo('setup-word');
+}
+function changeTeams(delta){
+  teams = Math.min(6, Math.max(2, teams + delta));
+  ['teams-count','taboo-teams-count'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = teams; });
+}
+function selectWordCategory(el){
+  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  wordCategory = el.dataset.cat;
+}
+function selectWordDuration(el){
+  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  wordDuration = parseInt(el.dataset.dur, 10);
+}
+function startWordFlow(){
+  wordDeck = makeDeck(CONTENT.wordCategories[wordCategory]);
+  wordTeamScores = Array(teams).fill(0);
+  wordCurrentTeam = 0;
+  goToWordPass();
+}
+function goToWordPass(){
+  document.getElementById('word-pass-name').textContent = 'Команда ' + (wordCurrentTeam + 1);
+  goTo('pass-word');
+}
+function unblurWordCard(){
+  document.getElementById('word-reveal-card').classList.remove('blurred');
+  document.getElementById('word-reveal-hint').style.display = 'none';
+}
+function beginWordTimer(){
+  const w = wordDeck.draw();
+  document.getElementById('word-reveal-card').classList.add('blurred');
+  document.getElementById('word-reveal-hint').style.display = 'flex';
+  document.getElementById('word-reveal-text').textContent = w;
+  // подготовка к самому показу — сразу переходим к экрану раскрытия перед стартом раунда
+  wordRoundWords = [];
+  document.getElementById('word-team-label').textContent = 'Команда ' + (wordCurrentTeam + 1);
+  document.getElementById('word-current').textContent = w;
+  document.getElementById('word-guessed-count').textContent = 'Угадано: 0';
+  goTo('game-word');
+  wordTimer = createTimer(wordDuration, (rem) => {
+    document.getElementById('word-timer').textContent = formatTime(rem);
+  }, () => {
+    vibrate();
+    goToWordReview();
+  });
+}
+function wordAction(type){
+  const current = document.getElementById('word-current').textContent;
+  wordRoundWords.push({ text: current, correct: type === 'correct' });
+  if(type === 'correct') vibrate();
+  document.getElementById('word-guessed-count').textContent = 'Угадано: ' + wordRoundWords.filter(w=>w.correct).length;
+  document.getElementById('word-current').textContent = wordDeck.draw();
+}
+function goToWordReview(){
+  if(wordTimer) wordTimer.cancel();
+  const list = document.getElementById('review-word-list');
+  list.innerHTML = wordRoundWords.filter(w=>w.correct).map((w,i) =>
+    '<div class="review-item" onclick="toggleWordReview(' + i + ')" id="wr-' + i + '"><span class="word-label">' + w.text + '</span><span>✓</span></div>'
+  ).join('') || '<div class="sub">Ничего не угадано в этом раунде</div>';
+  updateWordReviewCount();
+  goTo('review-word');
+}
+function toggleWordReview(i){
+  const guessed = wordRoundWords.filter(w=>w.correct);
+  guessed[i].rejected = !guessed[i].rejected;
+  document.getElementById('wr-' + i).classList.toggle('rejected');
+  updateWordReviewCount();
+}
+function updateWordReviewCount(){
+  const guessed = wordRoundWords.filter(w=>w.correct && !w.rejected);
+  document.getElementById('review-word-count').textContent = guessed.length;
+}
+function finishWordRound(){
+  const guessedCount = wordRoundWords.filter(w=>w.correct && !w.rejected).length;
+  wordTeamScores[wordCurrentTeam] += guessedCount;
+  wordCurrentTeam = (wordCurrentTeam + 1) % teams;
+  goToWordPass();
+}
+function wordScoreboardHtml(){
+  return '<div class="stats-table">' + wordTeamScores.map((s,i) =>
+    '<div class="stats-row"><span>Команда ' + (i+1) + '</span><span>' + s + '</span></div>'
+  ).join('') + '</div>';
 }
 
-loadContent();
+/* =================== ТАБУ =================== */
+let tabooDeck = null, tabooCurrentTeam = 0, tabooTeamScores = [], tabooRoundCards = [], tabooTimer = null, tabooPenalty = true;
+
+function openTabooSetup(){ goTo('setup-taboo'); }
+function toggleTabooPenalty(el){
+  tabooPenalty = !tabooPenalty;
+  el.textContent = 'Штраф за нарушение: ' + (tabooPenalty ? '−1 очко' : 'выкл');
+  el.classList.toggle('active', tabooPenalty);
+}
+function startTabooFlow(){
+  tabooDeck = makeDeck(CONTENT.tabooCards);
+  tabooTeamScores = Array(teams).fill(0);
+  tabooCurrentTeam = 0;
+  goToTabooPass();
+}
+function goToTabooPass(){
+  document.getElementById('taboo-pass-name').textContent = 'Команда ' + (tabooCurrentTeam + 1);
+  goTo('pass-taboo');
+}
+function unblurTabooCard(){
+  document.getElementById('taboo-reveal-card').classList.remove('blurred');
+  document.getElementById('taboo-reveal-hint').style.display = 'none';
+}
+let tabooCurrentCard = null;
+function beginTabooTimer(){
+  tabooCurrentCard = tabooDeck.draw();
+  document.getElementById('taboo-reveal-card').classList.add('blurred');
+  document.getElementById('taboo-reveal-hint').style.display = 'flex';
+  document.getElementById('taboo-reveal-word').textContent = tabooCurrentCard.word;
+  document.getElementById('taboo-reveal-list').innerHTML = tabooCurrentCard.taboo.map(t => '<div class="taboo-item">' + t + '</div>').join('');
+  tabooRoundCards = [];
+  document.getElementById('taboo-team-label').textContent = 'Команда ' + (tabooCurrentTeam + 1);
+  renderTabooGameCard();
+  document.getElementById('taboo-guessed-count').textContent = 'Угадано: 0';
+  goTo('game-taboo');
+  tabooTimer = createTimer(60, (rem) => {
+    document.getElementById('taboo-timer').textContent = formatTime(rem);
+  }, () => { vibrate(); goToTabooReview(); });
+}
+function renderTabooGameCard(){
+  document.getElementById('taboo-current-word').textContent = tabooCurrentCard.word;
+  document.getElementById('taboo-current-list').innerHTML = tabooCurrentCard.taboo.map(t => '<div class="taboo-item">' + t + '</div>').join('');
+}
+function tabooAction(type){
+  tabooRoundCards.push({ word: tabooCurrentCard.word, correct: type === 'correct', violation: type === 'violation' });
+  if(type === 'correct') vibrate();
+  document.getElementById('taboo-guessed-count').textContent = 'Угадано: ' + tabooRoundCards.filter(c=>c.correct).length;
+  tabooCurrentCard = tabooDeck.draw();
+  renderTabooGameCard();
+}
+function goToTabooReview(){
+  if(tabooTimer) tabooTimer.cancel();
+  const list = document.getElementById('review-taboo-list');
+  list.innerHTML = tabooRoundCards.filter(c=>c.correct || c.violation).map((c,i) =>
+    '<div class="review-item" onclick="toggleTabooReview(' + i + ')" id="tr-' + i + '"><span class="word-label">' + c.word + (c.violation ? ' (нарушение)' : '') + '</span><span>' + (c.violation ? '⚠️' : '✓') + '</span></div>'
+  ).join('') || '<div class="sub">Ничего не засчитано в этом раунде</div>';
+  updateTabooReviewCount();
+  goTo('review-taboo');
+}
+function toggleTabooReview(i){
+  const relevant = tabooRoundCards.filter(c=>c.correct || c.violation);
+  relevant[i].rejected = !relevant[i].rejected;
+  document.getElementById('tr-' + i).classList.toggle('rejected');
+  updateTabooReviewCount();
+}
+function updateTabooReviewCount(){
+  const correct = tabooRoundCards.filter(c=>c.correct && !c.rejected).length;
+  const violations = tabooRoundCards.filter(c=>c.violation && !c.rejected).length;
+  const total = correct - (tabooPenalty ? violations : 0);
+  document.getElementById('review-taboo-count').textContent = total;
+}
+function finishTabooRound(){
+  const correct = tabooRoundCards.filter(c=>c.correct && !c.rejected).length;
+  const violations = tabooRoundCards.filter(c=>c.violation && !c.rejected).length;
+  tabooTeamScores[tabooCurrentTeam] += correct - (tabooPenalty ? violations : 0);
+  tabooCurrentTeam = (tabooCurrentTeam + 1) % teams;
+  goToTabooPass();
+}
+
+/* =================== ШПИОН =================== */
+let spyMode = 'none', spyCount = 1, spyLocation = '', spyIndex = 0, spySpyIndices = [];
+let spyAccusedName = null;
+
+function openSpySetup(){
+  if(players.length < 3){ alert('Для Шпиона нужно минимум 3 игрока. Добавь игроков в разделе "Изменить игроков".'); goTo('players'); return; }
+  document.getElementById('spy-players-hint').textContent = 'Играют: ' + players.join(', ');
+  goTo('setup-spy');
+}
+function selectSpyMode(el){
+  el.parentElement.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  spyMode = el.dataset.mode;
+}
+function changeSpyCount(delta){
+  const max = Math.max(1, Math.floor(players.length / 3));
+  spyCount = Math.min(max, Math.max(1, spyCount + delta));
+  document.getElementById('spy-count').textContent = spyCount;
+}
+function startSpyGame(){
+  spyLocation = CONTENT.spyLocations[Math.floor(Math.random() * CONTENT.spyLocations.length)];
+  const idxPool = shuffleArray(players.map((_,i)=>i));
+  spySpyIndices = idxPool.slice(0, spyCount);
+  spyIndex = 0;
+  showSpyPass();
+  goTo('pass-spy');
+}
+function showSpyPass(){
+  document.getElementById('spy-pass-name').textContent = players[spyIndex];
+}
+function revealSpyRole(){
+  const isSpy = spySpyIndices.includes(spyIndex);
+  let text;
+  if(isSpy){
+    text = spyMode === 'category' ? 'Ты ШПИОН 🕵️ Категория: места' : 'Ты ШПИОН 🕵️ Постарайся не спалиться';
+  } else {
+    text = 'Локация: ' + spyLocation;
+  }
+  document.getElementById('spy-reveal-text').textContent = text;
+  document.getElementById('spy-reveal-card').classList.add('blurred');
+  document.getElementById('spy-reveal-hint').style.display = 'flex';
+  goTo('reveal-spy');
+}
+function unblurSpyCard(){
+  document.getElementById('spy-reveal-card').classList.remove('blurred');
+  document.getElementById('spy-reveal-hint').style.display = 'none';
+}
+function nextSpyPlayer(){
+  spyIndex++;
+  if(spyIndex >= players.length){
+    startSpyDiscussion();
+  } else {
+    showSpyPass();
+    goTo('pass-spy');
+  }
+}
+let spyDiscussTimer = null;
+function startSpyDiscussion(){
+  goTo('discuss-spy');
+  spyDiscussTimer = createTimer(180, (rem) => {
+    document.getElementById('spy-discuss-timer').textContent = formatTime(rem);
+  }, () => { vibrate(); });
+  renderSpyVoteList();
+}
+function renderSpyVoteList(){
+  const list = document.getElementById('spy-vote-list');
+  list.innerHTML = players.map((p,i) =>
+    '<button class="vote-name-btn" onclick="accuseSpy(' + i + ')">' + p + '</button>'
+  ).join('');
+}
+function accuseSpy(i){
+  if(spyDiscussTimer) spyDiscussTimer.cancel();
+  const correct = spySpyIndices.includes(i);
+  document.getElementById('spy-result-location').textContent = 'Локация была: ' + spyLocation;
+  document.getElementById('spy-result-spies').textContent = 'Шпион' + (spySpyIndices.length>1?'ы':'') + ': ' + spySpyIndices.map(idx=>players[idx]).join(', ');
+  document.getElementById('spy-result-title').textContent = correct ? 'Шпион раскрыт! Мирные победили' : 'Не угадали — шпион побеждает!';
+  document.getElementById('spy-guess-block').style.display = correct ? 'block' : 'none';
+  goTo('result-spy');
+}
+function spyGuessCorrect(guessed){
+  const title = guessed ? 'Шпион всё равно выиграл, угадав слово!' : 'Мирные жители победили окончательно!';
+  document.getElementById('spy-result-title').textContent = title;
+  document.getElementById('spy-guess-block').style.display = 'none';
+}
+function spyResultSummary(){
+  return 'Локация: ' + spyLocation + '. Шпион' + (spySpyIndices.length>1?'ы':'') + ': ' + spySpyIndices.map(idx=>players[idx]).join(', ');
+}
+
+/* =================== КТО Я =================== */
+let whoamiOrder = [], whoamiRoles = {}, whoamiAssignIdx = 0, whoamiCurrentIdx = 0, whoamiDeck = null, whoamiGuessedSet = new Set();
+
+function openWhoamiSetup(){
+  if(players.length < 3){ alert('Для Кто Я нужно минимум 3 игрока. Добавь игроков в разделе "Изменить игроков".'); goTo('players'); return; }
+  document.getElementById('whoami-players-hint').textContent = 'Играют: ' + players.join(', ');
+  goTo('setup-whoami');
+}
+function startWhoamiGame(){
+  whoamiDeck = makeDeck(CONTENT.whoamiWords);
+  whoamiRoles = {};
+  players.forEach((p,i) => { whoamiRoles[i] = whoamiDeck.draw(); });
+  whoamiAssignIdx = 0;
+  whoamiGuessedSet = new Set();
+  showWhoamiAssign();
+}
+function showWhoamiAssign(){
+  document.getElementById('whoami-warn').textContent = 'ОТВЕРНИСЬ, ' + players[whoamiAssignIdx].toUpperCase() + '!';
+  document.getElementById('whoami-assign-role').textContent = whoamiRoles[whoamiAssignIdx];
+  goTo('assign-whoami');
+}
+function nextWhoamiAssign(){
+  whoamiAssignIdx++;
+  if(whoamiAssignIdx >= players.length){
+    whoamiCurrentIdx = 0;
+    renderWhoamiGameList();
+    goTo('game-whoami');
+  } else {
+    showWhoamiAssign();
+  }
+}
+function renderWhoamiGameList(){
+  const list = document.getElementById('whoami-player-list');
+  list.innerHTML = players.map((p,i) => {
+    const done = whoamiGuessedSet.has(i);
+    const active = i === whoamiCurrentIdx && !done;
+    return '<div class="player-row ' + (done?'done':'') + '"><span><span class="status-dot ' + (done?'ok':'') + '"></span>' + p + (active ? ' (сейчас угадывает)' : '') + '</span></div>';
+  }).join('');
+  document.getElementById('whoami-guess-btn').style.display = whoamiGuessedSet.size >= players.length ? 'none' : 'block';
+}
+function whoamiCurrentGuessed(){
+  document.getElementById('whoami-confirm-name').textContent = 'Кем был(а) ' + players[whoamiCurrentIdx] + '?';
+  document.getElementById('whoami-confirm-role').textContent = whoamiRoles[whoamiCurrentIdx];
+  goTo('confirm-whoami');
+}
+function whoamiAfterConfirm(){
+  whoamiGuessedSet.add(whoamiCurrentIdx);
+  vibrate();
+  // передвигаем указатель на следующего неугадавшего
+  let next = (whoamiCurrentIdx + 1) % players.length;
+  let loops = 0;
+  while(whoamiGuessedSet.has(next) && loops < players.length){ next = (next+1) % players.length; loops++; }
+  whoamiCurrentIdx = next;
+  if(whoamiGuessedSet.size >= players.length){
+    endGameScreen('Кто я', 'Все угадали свои роли!', startWhoamiGame);
+  } else {
+    renderWhoamiGameList();
+    goTo('game-whoami');
+  }
+}
+
+/* =================== ПРАВДА ИЛИ ДЕЙСТВИЕ =================== */
+let tdLevel = 'normal', tdOrder = 'auto', tdCurrentIdx = 0, tdDeckTruth = null, tdDeckDare = null, tdReplaces = 0, tdMaxReplaces = 2, tdCurrentType = 'truth';
+
+function openTruthDareSetup(){
+  if(players.length < 2){ alert('Нужно минимум 2 игрока.'); goTo('players'); return; }
+  document.getElementById('td-players-hint').textContent = 'Играют: ' + players.join(', ');
+  goTo('setup-truthdare');
+}
+function selectTdLevel(el){
+  el.parentElement.querySelectorAll('.category').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  tdLevel = el.dataset.lvl;
+}
+function selectTdOrder(el){
+  el.parentElement.querySelectorAll('.category').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  tdOrder = el.dataset.order;
+}
+function startTruthDareGame(){
+  tdDeckTruth = makeDeck(CONTENT.cardDecks.truth);
+  tdDeckDare = makeDeck(CONTENT.cardDecks.dare);
+  tdCurrentIdx = 0;
+  goToTdTurn();
+}
+function goToTdTurn(){
+  document.getElementById('td-turn-name').textContent = players[tdCurrentIdx];
+  goTo('turn-truthdare');
+}
+function showTdCard(type){
+  tdCurrentType = type;
+  tdReplaces = 0;
+  const text = type === 'truth' ? tdDeckTruth.draw() : tdDeckDare.draw();
+  document.getElementById('td-card-text').textContent = text;
+  goTo('card-truthdare');
+}
+function replaceTdCard(){
+  if(tdReplaces >= tdMaxReplaces) return;
+  tdReplaces++;
+  const text = tdCurrentType === 'truth' ? tdDeckTruth.draw() : tdDeckDare.draw();
+  document.getElementById('td-card-text').textContent = text;
+}
+function tdCardDone(){
+  vibrate();
+  if(tdOrder === 'auto'){
+    tdCurrentIdx = (tdCurrentIdx + 1) % players.length;
+    goToTdTurn();
+  } else {
+    renderTdNextList();
+    goTo('next-truthdare');
+  }
+}
+function renderTdNextList(){
+  const list = document.getElementById('td-next-list');
+  list.innerHTML = players.map((p,i) =>
+    '<button class="vote-name-btn" onclick="pickTdNext(' + i + ')">' + p + '</button>'
+  ).join('');
+}
+function pickTdNext(i){
+  tdCurrentIdx = i;
+  goToTdTurn();
+}
+
+/* =================== Я НИКОГДА НЕ =================== */
+let neverMode = 'pass', neverDeck = null, neverCurrentIdx = 0;
+
+function openNeverSetup(){ goTo('setup-never'); }
+function selectNeverMode(el){
+  el.parentElement.querySelectorAll('.category').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  neverMode = el.dataset.mode;
+}
+function startNeverGame(){
+  neverDeck = makeDeck(CONTENT.cardDecks.never);
+  if(neverMode === 'pass' && players.length >= 2){
+    neverCurrentIdx = 0;
+    goToNeverPass();
+  } else {
+    showNeverPhrase();
+  }
+}
+function goToNeverPass(){
+  document.getElementById('never-pass-name').textContent = players[neverCurrentIdx];
+  goTo('pass-never');
+}
+function showNeverPhrase(){
+  document.getElementById('never-phrase-text').textContent = neverDeck.draw();
+  goTo('phrase-never');
+}
+function nextNeverPhrase(){
+  if(neverMode === 'pass' && players.length >= 2){
+    neverCurrentIdx = (neverCurrentIdx + 1) % players.length;
+    goToNeverPass();
+  } else {
+    showNeverPhrase();
+  }
+}
+
+/* =================== КТО ИЗ НАС СКОРЕЕ (голосование) =================== */
+let mlDeck = null, mlCurrentPhrase = '', mlVotes = {}, mlStats = {};
+
+function openMostLikelySetup(){
+  if(players.length < 2){ alert('Нужно минимум 2 игрока.'); goTo('players'); return; }
+  document.getElementById('ml-players-hint').textContent = 'Играют: ' + players.join(', ');
+  goTo('setup-mostlikely');
+}
+function startMostLikelyGame(){
+  mlDeck = makeDeck(CONTENT.voteDecks.likely);
+  mlStats = {};
+  players.forEach((p,i) => mlStats[i] = 0);
+  nextMostLikelyPhrase();
+}
+function nextMostLikelyPhrase(){
+  mlCurrentPhrase = mlDeck.draw();
+  document.getElementById('ml-phrase-text').textContent = mlCurrentPhrase;
+  goTo('phrase-mostlikely');
+}
+function renderMlVoteList(){
+  mlVotes = {};
+  players.forEach((p,i) => mlVotes[i] = 0);
+  const list = document.getElementById('ml-vote-list');
+  function render(){
+    list.innerHTML = players.map((p,i) =>
+      '<button class="vote-name-btn" onclick="voteMl(' + i + ')">' + p + '<span class="votes">' + mlVotes[i] + '</span></button>'
+    ).join('');
+  }
+  window.__mlRender = render;
+  render();
+}
+function voteMl(i){
+  mlVotes[i]++;
+  window.__mlRender();
+}
+function finishMostLikelyVote(){
+  const max = Math.max(...Object.values(mlVotes));
+  const winners = Object.keys(mlVotes).filter(i => mlVotes[i] === max && max > 0);
+  if(winners.length === 0){
+    document.getElementById('ml-result-title').textContent = 'Никто не проголосовал';
+    document.getElementById('ml-result-name').textContent = '—';
+  } else {
+    winners.forEach(i => mlStats[i]++);
+    document.getElementById('ml-result-title').textContent = winners.length > 1 ? 'Ничья между:' : 'Большинство считает, что это:';
+    document.getElementById('ml-result-name').textContent = winners.map(i => players[i]).join(', ');
+  }
+  goTo('result-mostlikely');
+}
+function finishMostLikelyGame(){
+  const rows = players.map((p,i) => ({ name: p, wins: mlStats[i] || 0 })).sort((a,b)=>b.wins-a.wins);
+  const html = '<div class="stats-table">' + rows.map(r =>
+    '<div class="stats-row"><span>' + r.name + '</span><span>' + r.wins + '</span></div>'
+  ).join('') + '</div>';
+  endGameScreen('Итоги голосований', 'Сколько раз на кого пало большинство голосов', startMostLikelyGame, html);
+}
+// перехватываем переход на экран голосования, чтобы отрисовать список
+const _origGoTo = goTo;
+goTo = function(id){
+  _origGoTo(id);
+  if(id === 'vote-mostlikely') renderMlVoteList();
+};
+
+/* =================== ЧТО БЫ ТЫ ВЫБРАЛ =================== */
+let wyDeck = null;
+function openWouldYouSetup(){
+  wyDeck = makeDeck(CONTENT.voteDecks.wouldyou);
+  nextWouldYou();
+  goTo('game-wouldyou');
+}
+function nextWouldYou(){
+  document.getElementById('wy-text').textContent = wyDeck.draw();
+}
 </script>
 </body>
 </html>
